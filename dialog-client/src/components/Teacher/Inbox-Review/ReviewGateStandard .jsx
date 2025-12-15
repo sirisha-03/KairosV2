@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Plus, X, Loader2, Save } from "lucide-react";
+import { useDateInput } from "./useDateInput";
 
 const ReviewGateStandard = ({
   gate,
@@ -20,6 +21,7 @@ const ReviewGateStandard = ({
   const [savingGateStandards, setSavingGateStandards] = useState(false);
   const [saveSuccessMessage, setSaveSuccessMessage] = useState(null);
   const [saveErrorMessage, setSaveErrorMessage] = useState(null);
+  const { toInputValue, toBackendValue } = useDateInput();
 
   // Normalize checklist: convert old string format to new object format, always return exactly 4 items
   const normalizeChecklist = (checklist) => {
@@ -737,45 +739,20 @@ const ReviewGateStandard = ({
                     </label>
                     <input
                       type="date"
-                      value={
-                        effectiveDueDate
-                          ? (() => {
-                              try {
-                                // Handle different date formats from API (e.g., "2025-11-22 00:00:00" or ISO string)
-                                const date = new Date(effectiveDueDate);
-                                if (isNaN(date.getTime())) return "";
-                                // Return YYYY-MM-DD format for date input
-                                const year = date.getFullYear();
-                                const month = String(
-                                  date.getMonth() + 1
-                                ).padStart(2, "0");
-                                const day = String(date.getDate()).padStart(
-                                  2,
-                                  "0"
-                                );
-                                return `${year}-${month}-${day}`;
-                              } catch (e) {
-                                return "";
-                              }
-                            })()
-                          : ""
-                      }
-                      onChange={(e) => {
-                        const dateValue = e.target.value
-                          ? new Date(e.target.value + "T00:00:00").toISOString()
-                          : "";
+                      value={toInputValue(effectiveDueDate)}
+                      onChange={(e) =>
                         updateChecklistMetadata(
                           activeTabIndex,
                           "due_date",
-                          dateValue
-                        );
-                      }}
+                          toBackendValue(e.target.value)
+                        )
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
                       disabled={isDisabled}
                     />
                   </div>
 
-                  {/* Feedback */}
+                  {/* Feedback
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1">
                       Feedback
@@ -793,10 +770,10 @@ const ReviewGateStandard = ({
                       disabled={isDisabled}
                       placeholder="Enter feedback"
                     />
-                  </div>
+                  </div> */}
                 </div>
 
-                {/* Save Button */}
+                {/* Save Button
                 <div className="mt-6 pt-4 border-t border-gray-200">
                   <button
                     onClick={handleSaveGateStandards}
@@ -825,7 +802,7 @@ const ReviewGateStandard = ({
                       {saveErrorMessage}
                     </div>
                   )}
-                </div>
+                </div> */}
               </div>
             )}
           </div>

@@ -81,6 +81,7 @@ function ProjectCard({
         <button
           className="tpq-btn tpq-btn--review"
           onClick={(e) => {
+            document.body.style.overflow = "hidden";
             e.stopPropagation();
             onReview(project);
           }}

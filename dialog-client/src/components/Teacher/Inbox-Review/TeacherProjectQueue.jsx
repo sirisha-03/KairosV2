@@ -713,6 +713,7 @@ export default function TeacherProjectQueue() {
       );
       setSuccessMessage(""); // Clear success message
     }
+    document.body.style.overflow = "auto";
   };
 
   const handleReject = async (project) => {
@@ -1756,6 +1757,7 @@ export default function TeacherProjectQueue() {
           onClick={(e) => {
             // Only close if clicking the overlay background, not modal content
             if (e.target === e.currentTarget) {
+              document.body.style.overflow = "auto";
               handleCloseDetails();
             }
           }}
@@ -1911,6 +1913,7 @@ export default function TeacherProjectQueue() {
                 <button
                   className="tpq-modal-close"
                   onClick={(e) => {
+                    document.body.style.overflow = "auto";
                     e.stopPropagation();
                     // Check for unsaved changes before closing
                     handleCloseDetails();
@@ -2299,6 +2302,64 @@ export default function TeacherProjectQueue() {
                                     </div>
                                   )}
 
+                                {/* Gate Standards */}
+                                {currentStage.gate && (
+                                  <div>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-4">
+                                      Gate Standards
+                                    </h3>
+                                    <ReviewGateStandard
+                                      gate={currentStage.gate}
+                                      isEditable={true}
+                                      projectId={editableProjectData.project_id}
+                                      stageId={currentStage.stage_id}
+                                      invokerEmail="teacher1@gmail.com"
+                                      studentId={editableProjectData.user_id}
+                                      gateId={currentStage.gate?.gate_id}
+                                      onUpdate={(field, index, value) => {
+                                        const stageIndex =
+                                          editableProjectData.stages.findIndex(
+                                            (s) =>
+                                              s.stage_id ===
+                                              currentStage.stage_id
+                                          );
+                                        setEditableProjectData((prev) => {
+                                          const newData = deepClone(prev);
+                                          if (field === "checklist") {
+                                            // New structure: value is the entire checklist array
+                                            if (
+                                              !newData.stages[stageIndex].gate
+                                            ) {
+                                              newData.stages[stageIndex].gate =
+                                                {};
+                                            }
+                                            newData.stages[
+                                              stageIndex
+                                            ].gate.checklist = value;
+                                          } else {
+                                            // Other gate fields (title, description)
+                                            if (
+                                              !newData.stages[stageIndex].gate
+                                            ) {
+                                              newData.stages[stageIndex].gate =
+                                                {};
+                                            }
+                                            newData.stages[stageIndex].gate[
+                                              field
+                                            ] = value;
+                                          }
+                                          return newData;
+                                        });
+                                        setHasUnsavedChanges(true);
+                                        setSuccessMessage(""); // Clear success message when making edits
+                                        setErrorMessage(""); // Clear error message when making edits
+                                      }}
+                                    />
+                                  </div>
+                                )}
+
+                                {/* Stage-Level Actions */}
+
                                 {/* Stage Feedback Section */}
                                 <div className="mt-6 pt-6 border-t border-gray-200">
                                   <label className="block text-xs font-semibold text-gray-500 mb-2">
@@ -2386,65 +2447,7 @@ export default function TeacherProjectQueue() {
                                   )}
                                 </div>
 
-                                {/* Gate Standards */}
-                                {currentStage.gate && (
-                                  <div>
-                                    <h3 className="text-lg font-bold text-gray-900 mb-4">
-                                      Gate Standards
-                                    </h3>
-                                    <ReviewGateStandard
-                                      gate={currentStage.gate}
-                                      isEditable={true}
-                                      projectId={editableProjectData.project_id}
-                                      stageId={currentStage.stage_id}
-                                      invokerEmail="teacher1@gmail.com"
-                                      studentId={editableProjectData.user_id}
-                                      gateId={currentStage.gate?.gate_id}
-                                      onUpdate={(field, index, value) => {
-                                        const stageIndex =
-                                          editableProjectData.stages.findIndex(
-                                            (s) =>
-                                              s.stage_id ===
-                                              currentStage.stage_id
-                                          );
-                                        setEditableProjectData((prev) => {
-                                          const newData = deepClone(prev);
-                                          if (field === "checklist") {
-                                            // New structure: value is the entire checklist array
-                                            if (
-                                              !newData.stages[stageIndex].gate
-                                            ) {
-                                              newData.stages[stageIndex].gate =
-                                                {};
-                                            }
-                                            newData.stages[
-                                              stageIndex
-                                            ].gate.checklist = value;
-                                          } else {
-                                            // Other gate fields (title, description)
-                                            if (
-                                              !newData.stages[stageIndex].gate
-                                            ) {
-                                              newData.stages[stageIndex].gate =
-                                                {};
-                                            }
-                                            newData.stages[stageIndex].gate[
-                                              field
-                                            ] = value;
-                                          }
-                                          return newData;
-                                        });
-                                        setHasUnsavedChanges(true);
-                                        setSuccessMessage(""); // Clear success message when making edits
-                                        setErrorMessage(""); // Clear error message when making edits
-                                      }}
-                                    />
-                                  </div>
-                                )}
-
-                                {/* Stage-Level Actions */}
                                 <div
-                                  className="mt-6 pt-6 border-t border-gray-200"
                                   style={{
                                     display: "flex",
                                     justifyContent: "space-between",
@@ -2500,7 +2503,7 @@ export default function TeacherProjectQueue() {
                                         }}
                                       >
                                         {(currentStage.status ||
-                                          stageStatuses[currentStage.stage_id]) === "Pending" ? "Revision" : (currentStage.status ||
+                                          stageStatuses[currentStage.stage_id]) === "Pending" ? "Not Reviewed" : (currentStage.status ||
                                             stageStatuses[currentStage.stage_id])}
                                       </div>
                                     ) : (
