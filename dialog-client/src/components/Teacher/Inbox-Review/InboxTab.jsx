@@ -273,7 +273,7 @@ const InboxTab = ({
                 )
               </option>
               <option value="project-change">
-                Project change (
+                Project Change (
                 {
                   projects.filter((p) =>
                     p.hasDeletionRequests ||

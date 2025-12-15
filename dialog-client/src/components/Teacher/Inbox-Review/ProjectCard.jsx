@@ -19,7 +19,7 @@ function ProjectCard({
     project.hasDeletionRequests ||
     (project.status && project.status.toLowerCase().includes("project change"))
   ) {
-    status = "Project change";
+    status = "Project Change";
   }
   // Display "New Project" instead of "Pending"
   else if (

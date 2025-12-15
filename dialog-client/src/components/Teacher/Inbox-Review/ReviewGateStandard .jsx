@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Plus, X, Loader2, Save } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { Plus, X, Loader2, Save, ChevronDown } from "lucide-react";
 import { useDateInput } from "./useDateInput";
 
 const ReviewGateStandard = ({
@@ -12,6 +12,7 @@ const ReviewGateStandard = ({
   invokerEmail,
   studentId,
   gateId,
+  studentName: studentNameProp,
 }) => {
   const isDisabled = isFrozen || !isEditable;
   const [activeTabIndex, setActiveTabIndex] = useState(0);
@@ -21,7 +22,27 @@ const ReviewGateStandard = ({
   const [savingGateStandards, setSavingGateStandards] = useState(false);
   const [saveSuccessMessage, setSaveSuccessMessage] = useState(null);
   const [saveErrorMessage, setSaveErrorMessage] = useState(null);
+  const [studentName, setStudentName] = useState(studentNameProp || "");
   const { toInputValue, toBackendValue } = useDateInput();
+
+  // Derive student display name with safe fallbacks
+  const assignedStudentName = useMemo(() => {
+    return (
+      studentName ||
+      gate?.Student_Name ||
+      gate?.student_name ||
+      gateStandardsData?.stageData?.student_name ||
+      gate?.student?.name ||
+      gate?.student ||
+      "Student"
+    );
+  }, [
+    studentName,
+    gate?.Student_Name,
+    gate?.student_name,
+    gate?.student,
+    gateStandardsData?.stageData?.student_name,
+  ]);
 
   // Normalize checklist: convert old string format to new object format, always return exactly 4 items
   const normalizeChecklist = (checklist) => {
@@ -109,6 +130,16 @@ const ReviewGateStandard = ({
       }
 
       if (apiData && apiData.stages) {
+        // Capture student name from API if present
+        const apiStudentName =
+          apiData?.project?.Student_Name ||
+          apiData?.project?.student_name ||
+          apiData?.Student_Name ||
+          null;
+        if (apiStudentName) {
+          setStudentName(apiStudentName);
+        }
+
         // Find the stage data for current stageId
         const stageData = apiData.stages.find((s) => s.stage_id === stageId);
 
@@ -184,6 +215,14 @@ const ReviewGateStandard = ({
     if (!gateStandardsData) {
       const normalized = normalizeChecklist(gate?.checklist);
       setChecklistItems(normalized);
+    }
+    // If student name not yet set, try from gate prop or parent prop
+    if (!studentName) {
+      const gateStudent = gate?.Student_Name || gate?.student_name;
+      const incoming = studentNameProp || gateStudent;
+      if (incoming) {
+        setStudentName(incoming);
+      }
     }
     // Ensure active tab is valid (0-3)
     if (activeTabIndex >= 4) {
@@ -359,6 +398,7 @@ const ReviewGateStandard = ({
         gate_checklist_title: item.text || "",
         gate_checklist_description: item.description || item.text || "",
         status: item.status || "Pending",
+        assigned_to: item.assigned_to || "",
         standards: Array.from(standardsMap.values()),
       };
     });
@@ -615,7 +655,7 @@ const ReviewGateStandard = ({
                               <X size={14} />
                             </button>
                           </div>
-                          
+
                           {/* LS Description*/}
                           <div className="mb-3">
                             <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -706,30 +746,44 @@ const ReviewGateStandard = ({
                   </div>
                 </div>
 
-                {/* Status, Due Date, and Feedback - Below Learning Standards */}
+                {/* Assigned To, Due Date, and Feedback - Below Learning Standards */}
                 <div className="mt-6 pt-4 border-t border-gray-200 space-y-4">
-                  {/* Status */}
+                  {/* Assigned To */}
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1">
-                      Status
+                      Assigned To
                     </label>
-                    <select
-                      value={effectiveStatus}
-                      onChange={(e) =>
-                        updateChecklistMetadata(
-                          activeTabIndex,
-                          "status",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                      disabled={isDisabled}
-                    >
-                      <option value="">Select status</option>
-                      <option value="Pending">Pending</option>
-                      <option value="Approved">Approved</option>
-                      <option value="Rejected">Rejected</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={currentItem.assigned_to || ""}
+                        onChange={(e) =>
+                          updateChecklistMetadata(
+                            activeTabIndex,
+                            "assigned_to",
+                            e.target.value
+                          )
+                        }
+                        className="appearance-none w-full px-3 pr-10 py-2 h-11 border border-gray-300 rounded-lg bg-white text-sm text-gray-800 shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition disabled:bg-gray-100 disabled:text-gray-500"
+                        disabled={isDisabled}
+                      >
+                        <option value="">Select Student</option>
+                        {assignedStudentName && (
+                          <option value={assignedStudentName}>
+                            {assignedStudentName}
+                          </option>
+                        )}
+                        {currentItem.assigned_to &&
+                          currentItem.assigned_to !== assignedStudentName && (
+                            <option value={currentItem.assigned_to}>
+                              {currentItem.assigned_to}
+                            </option>
+                          )}
+                      </select>
+                      <ChevronDown
+                        size={16}
+                        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                      />
+                    </div>
                   </div>
 
                   {/* Due Date */}

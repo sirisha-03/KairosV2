@@ -557,121 +557,121 @@ const ResourcesTab = () => {
                 <div className="tpq-stack" style={{ gap: "16px" }}>
                   <div style={{ marginBottom: "16px", padding: "12px", backgroundColor: "#f7fafc", borderRadius: "6px" }}>
                     <div style={{ fontWeight: 600, marginBottom: "8px", fontSize: "14px" }}>
-                      Resource Type
-                    </div>
-                    <div style={{ display: "flex", gap: "16px" }}>
-                      <label
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <input
-                          type="radio"
+            Resource Type
+          </div>
+          <div style={{ display: "flex", gap: "16px" }}>
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                cursor: "pointer",
+              }}
+            >
+              <input
+                type="radio"
                           name="addResourceType"
-                          value="project-specific"
-                          checked={resourceType === "project-specific"}
-                          onChange={(e) => {
-                            setResourceType(e.target.value);
-                          }}
-                        />
-                        <span>Project Specific</span>
-                      </label>
-                      <label
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <input
-                          type="radio"
+                value="project-specific"
+                checked={resourceType === "project-specific"}
+                onChange={(e) => {
+                  setResourceType(e.target.value);
+                }}
+              />
+              <span>Project Specific</span>
+            </label>
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                cursor: "pointer",
+              }}
+            >
+              <input
+                type="radio"
                           name="addResourceType"
-                          value="global"
-                          checked={resourceType === "global"}
-                          onChange={(e) => {
-                            setResourceType(e.target.value);
-                          }}
-                        />
-                        <span>Global</span>
-                      </label>
-                    </div>
-                  </div>
+                value="global"
+                checked={resourceType === "global"}
+                onChange={(e) => {
+                  setResourceType(e.target.value);
+                }}
+              />
+              <span>Global</span>
+            </label>
+          </div>
+        </div>
 
                   {resourceType === "project-specific" && (
-                    <div
-                      style={{
+            <div
+              style={{
                         display: "grid",
                         gridTemplateColumns: "1fr 1fr",
                         gap: "12px",
-                        marginBottom: "16px",
-                      }}
-                    >
-                      <div>
-                        <label
-                          style={{
-                            display: "block",
-                            marginBottom: "6px",
-                            fontSize: "14px",
-                            fontWeight: 500,
-                          }}
-                        >
-                          Student ID <span style={{ color: "#e53e3e" }}>*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={projectStudentId}
-                          onChange={(e) => setProjectStudentId(e.target.value)}
-                          placeholder="Enter Student ID"
-                          style={{
-                            width: "100%",
-                            padding: "8px 12px",
-                            border: "1px solid #cbd5e0",
-                            borderRadius: "6px",
-                            fontSize: "14px",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label
-                          style={{
-                            display: "block",
-                            marginBottom: "6px",
-                            fontSize: "14px",
-                            fontWeight: 500,
-                          }}
-                        >
-                          Project ID <span style={{ color: "#e53e3e" }}>*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={projectProjectId}
-                          onChange={(e) => setProjectProjectId(e.target.value)}
-                          placeholder="Enter Project ID"
-                          style={{
-                            width: "100%",
-                            padding: "8px 12px",
-                            border: "1px solid #cbd5e0",
-                            borderRadius: "6px",
-                            fontSize: "14px",
-                          }}
-                        />
-                      </div>
+                marginBottom: "16px",
+              }}
+            >
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: "6px",
+                      fontSize: "14px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Student ID <span style={{ color: "#e53e3e" }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={projectStudentId}
+                    onChange={(e) => setProjectStudentId(e.target.value)}
+                    placeholder="Enter Student ID"
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      border: "1px solid #cbd5e0",
+                      borderRadius: "6px",
+                      fontSize: "14px",
+                    }}
+                  />
+                </div>
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: "6px",
+                      fontSize: "14px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Project ID <span style={{ color: "#e53e3e" }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={projectProjectId}
+                    onChange={(e) => setProjectProjectId(e.target.value)}
+                    placeholder="Enter Project ID"
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      border: "1px solid #cbd5e0",
+                      borderRadius: "6px",
+                      fontSize: "14px",
+                    }}
+                  />
+                </div>
                     </div>
                   )}
 
                   <div>
                     <label
-                      style={{
+                  style={{
                         display: "block",
                         marginBottom: "6px",
                         fontSize: "14px",
                         fontWeight: 500,
-                      }}
-                    >
+                  }}
+                >
                       Description <span style={{ color: "#e53e3e" }}>*</span>
                     </label>
                     <input
@@ -687,63 +687,63 @@ const ResourcesTab = () => {
                         fontSize: "14px",
                       }}
                     />
-                  </div>
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: "12px",
-                    }}
-                  >
-                    <div>
-                      <label
-                        style={{
-                          display: "block",
-                          marginBottom: "6px",
-                          fontSize: "14px",
-                          fontWeight: 500,
-                        }}
-                      >
+              </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "12px",
+                  }}
+                >
+                  <div>
+                    <label
+                      style={{
+                        display: "block",
+                        marginBottom: "6px",
+                        fontSize: "14px",
+                        fontWeight: 500,
+                      }}
+                    >
                         Type <span style={{ color: "#e53e3e" }}>*</span>
-                      </label>
-                      <input
-                        type="text"
+                    </label>
+                    <input
+                      type="text"
                         value={resourceTypeField}
                         onChange={(e) => setResourceTypeField(e.target.value)}
                         placeholder="e.g., Video, Document"
-                        style={{
-                          width: "100%",
-                          padding: "8px 12px",
-                          border: "1px solid #cbd5e0",
-                          borderRadius: "6px",
-                          fontSize: "14px",
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label
-                        style={{
-                          display: "block",
-                          marginBottom: "6px",
-                          fontSize: "14px",
-                          fontWeight: 500,
-                        }}
-                      >
+                      style={{
+                        width: "100%",
+                        padding: "8px 12px",
+                        border: "1px solid #cbd5e0",
+                        borderRadius: "6px",
+                        fontSize: "14px",
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      style={{
+                        display: "block",
+                        marginBottom: "6px",
+                        fontSize: "14px",
+                        fontWeight: 500,
+                      }}
+                    >
                         Format <span style={{ color: "#e53e3e" }}>*</span>
-                      </label>
-                      <input
-                        type="text"
+                    </label>
+                    <input
+                      type="text"
                         value={resourceFormat}
                         onChange={(e) => setResourceFormat(e.target.value)}
                         placeholder="e.g., PDF, MP4, DOCX"
-                        style={{
-                          width: "100%",
-                          padding: "8px 12px",
-                          border: "1px solid #cbd5e0",
-                          borderRadius: "6px",
-                          fontSize: "14px",
-                        }}
-                      />
+                      style={{
+                        width: "100%",
+                        padding: "8px 12px",
+                        border: "1px solid #cbd5e0",
+                        borderRadius: "6px",
+                        fontSize: "14px",
+                      }}
+                    />
                     </div>
                   </div>
                   <div>
@@ -818,25 +818,25 @@ const ResourcesTab = () => {
                         fontSize: "14px",
                       }}
                     />
-                  </div>
+                </div>
                   
                   {/* Add Resource and Cancel buttons at bottom right of content */}
                   <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e2e8f0", justifyContent: "flex-end" }}>
-                    <button
-                      className="tpq-btn tpq-btn--primary"
+                <button
+                  className="tpq-btn tpq-btn--primary"
                       onClick={handleAddResource}
-                      disabled={loading}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
-                    >
-                      {loading ? (
-                        <Loader2 size={16} className="spin" />
-                      ) : (
+                  disabled={loading}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  {loading ? (
+                    <Loader2 size={16} className="spin" />
+                  ) : (
                         <Plus size={16} />
-                      )}
+                  )}
                       {loading ? "Adding..." : "Add Resource"}
                     </button>
                     <button
@@ -848,13 +848,13 @@ const ResourcesTab = () => {
                       }}
                     >
                       Cancel
-                    </button>
+                </button>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+              </div>
+            )}
 
         {/* Edit Resource Modal Dialog */}
         {showEditForm && selectedResource && (
@@ -901,23 +901,23 @@ const ResourcesTab = () => {
                   >
                     <X size={16} />
                     {error}
-                  </div>
-                )}
+          </div>
+        )}
 
                 {success && (
-                  <div
-                    style={{
+            <div
+              style={{
                       padding: "12px 16px",
                       backgroundColor: "#d1fae5",
                       border: "1px solid #a7f3d0",
                       borderRadius: "6px",
-                      marginBottom: "16px",
+                marginBottom: "16px",
                       color: "#065f46",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
                     <Check size={16} />
                     {success}
                   </div>
@@ -968,244 +968,244 @@ const ResourcesTab = () => {
                         <span>Global</span>
                       </label>
                     </div>
-                  </div>
+            </div>
 
-                  {resourceType === "project-specific" && (
-                    <div
+            {resourceType === "project-specific" && (
+              <div
                       style={{
                         display: "grid",
                         gridTemplateColumns: "1fr 1fr",
                         gap: "12px",
                         marginBottom: "16px",
                       }}
-                    >
-                      <div>
-                        <label
-                          style={{
-                            display: "block",
-                            marginBottom: "6px",
-                            fontSize: "14px",
-                            fontWeight: 500,
-                          }}
-                        >
-                          Student ID <span style={{ color: "#e53e3e" }}>*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={projectStudentId}
-                          onChange={(e) => setProjectStudentId(e.target.value)}
-                          placeholder="Enter Student ID"
-                          style={{
-                            width: "100%",
-                            padding: "8px 12px",
-                            border: "1px solid #cbd5e0",
-                            borderRadius: "6px",
-                            fontSize: "14px",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label
-                          style={{
-                            display: "block",
-                            marginBottom: "6px",
-                            fontSize: "14px",
-                            fontWeight: 500,
-                          }}
-                        >
-                          Project ID <span style={{ color: "#e53e3e" }}>*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={projectProjectId}
-                          onChange={(e) => setProjectProjectId(e.target.value)}
-                          placeholder="Enter Project ID"
-                          style={{
-                            width: "100%",
-                            padding: "8px 12px",
-                            border: "1px solid #cbd5e0",
-                            borderRadius: "6px",
-                            fontSize: "14px",
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <label
-                      style={{
-                        display: "block",
-                        marginBottom: "6px",
-                        fontSize: "14px",
-                        fontWeight: 500,
-                      }}
-                    >
-                      Description <span style={{ color: "#e53e3e" }}>*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={resourceDescription}
-                      onChange={(e) => setResourceDescription(e.target.value)}
-                      placeholder="Enter resource description"
-                      style={{
-                        width: "100%",
-                        padding: "8px 12px",
-                        border: "1px solid #cbd5e0",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                      }}
-                    />
-                  </div>
-                  <div
+              >
+                <div>
+                  <label
                     style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: "12px",
+                      display: "block",
+                      marginBottom: "6px",
+                      fontSize: "14px",
+                      fontWeight: 500,
                     }}
                   >
-                    <div>
-                      <label
-                        style={{
-                          display: "block",
-                          marginBottom: "6px",
-                          fontSize: "14px",
-                          fontWeight: 500,
-                        }}
-                      >
-                        Type <span style={{ color: "#e53e3e" }}>*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={resourceTypeField}
-                        onChange={(e) => setResourceTypeField(e.target.value)}
-                        placeholder="e.g., Video, Document"
-                        style={{
-                          width: "100%",
-                          padding: "8px 12px",
-                          border: "1px solid #cbd5e0",
-                          borderRadius: "6px",
-                          fontSize: "14px",
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label
-                        style={{
-                          display: "block",
-                          marginBottom: "6px",
-                          fontSize: "14px",
-                          fontWeight: 500,
-                        }}
-                      >
-                        Format <span style={{ color: "#e53e3e" }}>*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={resourceFormat}
-                        onChange={(e) => setResourceFormat(e.target.value)}
-                        placeholder="e.g., PDF, MP4, DOCX"
-                        style={{
-                          width: "100%",
-                          padding: "8px 12px",
-                          border: "1px solid #cbd5e0",
-                          borderRadius: "6px",
-                          fontSize: "14px",
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label
-                      style={{
-                        display: "block",
-                        marginBottom: "6px",
-                        fontSize: "14px",
-                        fontWeight: 500,
-                      }}
-                    >
-                      Subject
-                    </label>
-                    <input
-                      type="text"
-                      value={resourceSubject}
-                      onChange={(e) => setResourceSubject(e.target.value)}
-                      placeholder="e.g., Mathematics, Science"
-                      style={{
-                        width: "100%",
-                        padding: "8px 12px",
-                        border: "1px solid #cbd5e0",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      style={{
-                        display: "block",
-                        marginBottom: "6px",
-                        fontSize: "14px",
-                        fontWeight: 500,
-                      }}
-                    >
-                      URL / Link
-                    </label>
-                    <input
-                      type="url"
-                      value={resourceUrl}
-                      onChange={(e) => setResourceUrl(e.target.value)}
-                      placeholder="https://example.com/resource"
-                      style={{
-                        width: "100%",
-                        padding: "8px 12px",
-                        border: "1px solid #cbd5e0",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      style={{
-                        display: "block",
-                        marginBottom: "6px",
-                        fontSize: "14px",
-                        fontWeight: 500,
-                      }}
-                    >
-                      File Upload (Optional)
-                    </label>
-                    <input
-                      type="file"
-                      onChange={(e) => setResourceFile(e.target.files[0])}
-                      style={{
-                        width: "100%",
-                        padding: "8px 12px",
-                        border: "1px solid #cbd5e0",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                      }}
-                    />
-                  </div>
+                    Student ID <span style={{ color: "#e53e3e" }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={projectStudentId}
+                    onChange={(e) => setProjectStudentId(e.target.value)}
+                    placeholder="Enter Student ID"
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      border: "1px solid #cbd5e0",
+                      borderRadius: "6px",
+                      fontSize: "14px",
+                    }}
+                  />
+                </div>
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: "6px",
+                      fontSize: "14px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Project ID <span style={{ color: "#e53e3e" }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={projectProjectId}
+                    onChange={(e) => setProjectProjectId(e.target.value)}
+                    placeholder="Enter Project ID"
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      border: "1px solid #cbd5e0",
+                      borderRadius: "6px",
+                      fontSize: "14px",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    marginBottom: "6px",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                  }}
+                >
+                  Description <span style={{ color: "#e53e3e" }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  value={resourceDescription}
+                  onChange={(e) => setResourceDescription(e.target.value)}
+                  placeholder="Enter resource description"
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    border: "1px solid #cbd5e0",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                  }}
+                />
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "12px",
+                }}
+              >
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: "6px",
+                      fontSize: "14px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Type <span style={{ color: "#e53e3e" }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={resourceTypeField}
+                    onChange={(e) => setResourceTypeField(e.target.value)}
+                    placeholder="e.g., Video, Document"
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      border: "1px solid #cbd5e0",
+                      borderRadius: "6px",
+                      fontSize: "14px",
+                    }}
+                  />
+                </div>
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: "6px",
+                      fontSize: "14px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Format <span style={{ color: "#e53e3e" }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={resourceFormat}
+                    onChange={(e) => setResourceFormat(e.target.value)}
+                    placeholder="e.g., PDF, MP4, DOCX"
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      border: "1px solid #cbd5e0",
+                      borderRadius: "6px",
+                      fontSize: "14px",
+                    }}
+                  />
+                </div>
+              </div>
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    marginBottom: "6px",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                  }}
+                >
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  value={resourceSubject}
+                  onChange={(e) => setResourceSubject(e.target.value)}
+                  placeholder="e.g., Mathematics, Science"
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    border: "1px solid #cbd5e0",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                  }}
+                />
+              </div>
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    marginBottom: "6px",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                  }}
+                >
+                  URL / Link
+                </label>
+                <input
+                  type="url"
+                  value={resourceUrl}
+                  onChange={(e) => setResourceUrl(e.target.value)}
+                  placeholder="https://example.com/resource"
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    border: "1px solid #cbd5e0",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                  }}
+                />
+              </div>
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    marginBottom: "6px",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                  }}
+                >
+                  File Upload (Optional)
+                </label>
+                <input
+                  type="file"
+                  onChange={(e) => setResourceFile(e.target.files[0])}
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    border: "1px solid #cbd5e0",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                  }}
+                />
+              </div>
                   
                   {/* Update and Delete buttons at bottom right of content */}
                   <div style={{ display: "flex", gap: "12px", marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e2e8f0", justifyContent: "flex-end" }}>
-                    <button
-                      className="tpq-btn tpq-btn--primary"
+              <button
+                className="tpq-btn tpq-btn--primary"
                       onClick={handleUpdateResource}
-                      disabled={loading}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
-                    >
-                      {loading ? (
-                        <Loader2 size={16} className="spin" />
-                      ) : (
+                disabled={loading}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                {loading ? (
+                  <Loader2 size={16} className="spin" />
+                ) : (
                         <Check size={16} />
-                      )}
+                )}
                       {loading ? "Updating..." : "Update Resource"}
                     </button>
                     <button
@@ -1238,7 +1238,7 @@ const ResourcesTab = () => {
                       }}
                     >
                       Cancel
-                    </button>
+              </button>
                   </div>
                 </div>
               </div>
@@ -1274,7 +1274,7 @@ const ResourcesTab = () => {
                     if (selectedResource?.id !== resource.id) {
                       e.currentTarget.style.backgroundColor = "white";
                     }
-                  }}
+                    }}
                   >
                     <div style={{ flex: 1 }}>
                       <div

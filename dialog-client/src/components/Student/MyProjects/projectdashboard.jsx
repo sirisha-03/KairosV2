@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   FolderOpen,
   Upload,
@@ -12,11 +12,11 @@ import {
   ChevronRight,
   Plus,
   Pencil,
-  Trash2
-} from 'lucide-react';
+  Trash2,
+} from "lucide-react";
 
 export default function ProjectDashboard() {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
 
   // Project object from backend (same shape as sidebar ProjectDetail)
   const [project, setProject] = useState(null);
@@ -25,104 +25,122 @@ export default function ProjectDashboard() {
   const [activeStageIdx, setActiveStageIdx] = useState(0);
 
   // Local UI state for quick add and resources
-  const [quickTaskTitle, setQuickTaskTitle] = useState('');
-  const [quickTaskDue, setQuickTaskDue] = useState('');
+  const [quickTaskTitle, setQuickTaskTitle] = useState("");
+  const [quickTaskDue, setQuickTaskDue] = useState("");
   const [showAddTaskDialog, setShowAddTaskDialog] = useState(false);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newTaskDescription, setNewTaskDescription] = useState('');
-  const [newTaskDueDate, setNewTaskDueDate] = useState('');
-  const [editDue, setEditDue] = useState('');
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDescription, setNewTaskDescription] = useState("");
+  const [newTaskDueDate, setNewTaskDueDate] = useState("");
+  const [editDue, setEditDue] = useState("");
 
   const [showAddItemDialog, setShowAddItemDialog] = useState(false);
-  const [newItemTitle, setNewItemTitle] = useState('');
-  const [newItemDue, setNewItemDue] = useState('');
+  const [newItemTitle, setNewItemTitle] = useState("");
+  const [newItemDue, setNewItemDue] = useState("");
 
   const [showChecklistEditDialog, setShowChecklistEditDialog] = useState(false);
   const [editChecklistIndex, setEditChecklistIndex] = useState(null);
-  const [editChecklistTitle, setEditChecklistTitle] = useState('');
-  const [editChecklistDue, setEditChecklistDue] = useState('');
-
+  const [editChecklistTitle, setEditChecklistTitle] = useState("");
+  const [editChecklistDue, setEditChecklistDue] = useState("");
 
   // Delete confirmation modal
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [deleteReason, setDeleteReason] = useState('');
+  const [deleteReason, setDeleteReason] = useState("");
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   // Stage deletion dialog
   const [showStageDeleteDialog, setShowStageDeleteDialog] = useState(false);
-  const [deleteStageReason, setDeleteStageReason] = useState('');
+  const [deleteStageReason, setDeleteStageReason] = useState("");
   const [selectedStageId, setSelectedStageId] = useState(null);
-
-
 
   // Edit dialog state
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editTaskId, setEditTaskId] = useState(null);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDesc, setEditDesc] = useState('');
+  const [editTitle, setEditTitle] = useState("");
+  const [editDesc, setEditDesc] = useState("");
   const [isQuickAdd, setIsQuickAdd] = useState(false);
   // Reflection modal state (Gate checklist feedback)
   const [showReflectionDialog, setShowReflectionDialog] = useState(false);
-  const [reflectionText, setReflectionText] = useState('');
+  const [reflectionText, setReflectionText] = useState("");
   const [reflectionItemIdx, setReflectionItemIdx] = useState(null);
   const [showResourcesDialog, setShowResourcesDialog] = useState(false);
   const [resourcesTaskId, setResourcesTaskId] = useState(null);
-  const [resourceFormError, setResourceFormError] = useState('');
+  const [resourceFormError, setResourceFormError] = useState("");
   const [showAddResourceDialog, setShowAddResourceDialog] = useState(false);
 
   // Resource form state (student side)
-  const [newResourceTitle, setNewResourceTitle] = useState('');
-  const [newResourceDescription, setNewResourceDescription] = useState('');
-  const [newResourceType, setNewResourceType] = useState('Lesson Plan');
-  const [newResourceFormat, setNewResourceFormat] = useState('pdf');
-  const [newResourceSubject, setNewResourceSubject] = useState('');
-  const [newResourceLink, setNewResourceLink] = useState('');
-  const [newResourceSource, setNewResourceSource] = useState('student_created');
-  const [newResourceTagsInput, setNewResourceTagsInput] = useState('');
+  const [newResourceTitle, setNewResourceTitle] = useState("");
+  const [newResourceDescription, setNewResourceDescription] = useState("");
+  const [newResourceType, setNewResourceType] = useState("Lesson Plan");
+  const [newResourceFormat, setNewResourceFormat] = useState("pdf");
+  const [newResourceSubject, setNewResourceSubject] = useState("");
+  const [newResourceLink, setNewResourceLink] = useState("");
+  const [newResourceSource, setNewResourceSource] = useState("student_created");
+  const [newResourceTagsInput, setNewResourceTagsInput] = useState("");
   const [lastUploadedFile, setLastUploadedFile] = useState(null);
 
   // Gate UI state
-  const DEFAULT_GATE_STEPS = ['Prep','Schedule','Notify','Complete','Review/Evaluate','Final Report','Feedback/Reflection'];
+  const DEFAULT_GATE_STEPS = [
+    "Prep",
+    "Schedule",
+    "Notify",
+    "Complete",
+    "Review/Evaluate",
+    "Final Report",
+    "Feedback/Reflection",
+  ];
   const [activeGateStepIdx, setActiveGateStepIdx] = useState(0);
-  const [gateObjective, setGateObjective] = useState('');
-  const [gateEvidence, setGateEvidence] = useState('');
+  const [gateObjective, setGateObjective] = useState("");
+  const [gateEvidence, setGateEvidence] = useState("");
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
-  
+
   const addActivity = (action, details) => {
     mutateProject((p) => {
       p.activity = p.activity || [];
       p.activity.unshift({
-        id: `ACT-${Math.floor(Math.random()*9000+1000)}`,
+        id: `ACT-${Math.floor(Math.random() * 9000 + 1000)}`,
         action,
-        details: details || '',
-        at: new Date().toISOString()
+        details: details || "",
+        at: new Date().toISOString(),
       });
     });
   };
 
   // Stats derived from project
   const { taskStats, gateStats } = useMemo(() => {
-    if (!project) return { taskStats: { completed: 0, total: 0 }, gateStats: { completed: 0, total: 0 } };
+    if (!project)
+      return {
+        taskStats: { completed: 0, total: 0 },
+        gateStats: { completed: 0, total: 0 },
+      };
 
     const stages = project.stages || [];
-    const allTasks = stages.flatMap(s => s.tasks || []);
+    const allTasks = stages.flatMap((s) => s.tasks || []);
     const totalTasks = allTasks.length;
-    const completedTasks = allTasks.filter(t => (t.done === true) || (t.status && String(t.status).toLowerCase() === 'completed')).length;
+    const completedTasks = allTasks.filter(
+      (t) =>
+        t.done === true ||
+        (t.status && String(t.status).toLowerCase() === "completed")
+    ).length;
 
-    const allGates = stages.map(s => s.gate).filter(Boolean);
+    const allGates = stages.map((s) => s.gate).filter(Boolean);
     const totalGates = allGates.length;
-    const completedGates = allGates.filter(g => g.status && String(g.status).toLowerCase() === 'completed').length;
+    const completedGates = allGates.filter(
+      (g) => g.status && String(g.status).toLowerCase() === "completed"
+    ).length;
 
     return {
       taskStats: { completed: completedTasks, total: totalTasks },
-      gateStats: { completed: completedGates, total: totalGates }
+      gateStats: { completed: completedGates, total: totalGates },
     };
   }, [project]);
 
   // Resolve projectId from Dialog window (set in Code.js)
-  const projectId = (typeof window !== 'undefined' && window.PROJECT_ID) ? window.PROJECT_ID : null;
+  const projectId =
+    typeof window !== "undefined" && window.PROJECT_ID
+      ? window.PROJECT_ID
+      : null;
 
   // Fetch from Apps Script
   useEffect(() => {
@@ -141,15 +159,13 @@ export default function ProjectDashboard() {
 
           // Merge stages and tasks with deleteRequests
           const mergedStages = (p.stages || []).map((stage) => {
-
-
             stage.tasks = (stage.tasks || []).map((t) => {
               if (!t.status || t.status.trim() === "") {
                 t.status = ""; // keep empty, not null
               }
               return t;
             });
-            
+
             // Find any delete request linked to this stage
             const stageDeleteReq = deleteRequests.find(
               (r) =>
@@ -188,7 +204,6 @@ export default function ProjectDashboard() {
             return stage;
           });
 
-
           // Ensure stages are always sorted correctly
           p.stages = mergedStages;
 
@@ -205,12 +220,10 @@ export default function ProjectDashboard() {
             (a, b) => (a.stage_order || 0) - (b.stage_order || 0)
           );
 
-
-
           // 1. Check if any task in the project is under revision
           let projectHasRevision = false;
-          (p.stages || []).forEach(stage => {
-            if ((stage.tasks || []).some(t => t.status === "Revision")) {
+          (p.stages || []).forEach((stage) => {
+            if ((stage.tasks || []).some((t) => t.status === "Revision")) {
               projectHasRevision = true;
             }
           });
@@ -224,15 +237,15 @@ export default function ProjectDashboard() {
           );
 
           if (hasProjectDeleteReq) {
-          p.status = "Pending";
-        } else if (
-          (p.status === "Approved" || p.status === "Completed") &&
-          projectHasRevision
-        ) {
-          p.status = "Revision";
-        } else if (p.status === "Pending") {
-          p.status = "Pending";
-        }
+            p.status = "Pending";
+          } else if (
+            (p.status === "Approved" || p.status === "Completed") &&
+            projectHasRevision
+          ) {
+            p.status = "Revision";
+          } else if (p.status === "Pending") {
+            p.status = "Pending";
+          }
 
           setProject(p);
         } catch (e) {
@@ -248,11 +261,10 @@ export default function ProjectDashboard() {
         setIsLoading(false);
       })
       .getProjectDetails(projectId);
-
   }, [projectId]);
 
   const stages = project?.stages || [];
-  const isProjectLocked = project?.status === "Pending"
+  const isProjectLocked = project?.status === "Pending";
 
   useEffect(() => {
     if (activeStageIdx >= stages.length) setActiveStageIdx(0);
@@ -270,8 +282,9 @@ export default function ProjectDashboard() {
     if (resources.length < 1) return false;
 
     // Require that every resource has a non-empty description before submit
-    const allHaveDescription = resources.every((r) =>
-      typeof r.description === 'string' && r.description.trim().length > 0
+    const allHaveDescription = resources.every(
+      (r) =>
+        typeof r.description === "string" && r.description.trim().length > 0
     );
 
     return allHaveDescription;
@@ -280,9 +293,10 @@ export default function ProjectDashboard() {
   // Normalized steps for current stage gate
   const currentGateSteps = (() => {
     const s = stages[activeStageIdx];
-    const steps = s?.gate?.steps && Array.isArray(s.gate.steps) && s.gate.steps.length > 0
-      ? s.gate.steps
-      : DEFAULT_GATE_STEPS;
+    const steps =
+      s?.gate?.steps && Array.isArray(s.gate.steps) && s.gate.steps.length > 0
+        ? s.gate.steps
+        : DEFAULT_GATE_STEPS;
     return steps;
   })();
 
@@ -291,28 +305,26 @@ export default function ProjectDashboard() {
     const s = stages[activeStageIdx];
     const stepKey = currentGateSteps[activeGateStepIdx];
     const data = s?.gate?.step_data?.[stepKey] || {};
-    setGateObjective(data.objective || '');
-    setGateEvidence(data.evidence || '');
+    setGateObjective(data.objective || "");
+    setGateEvidence(data.evidence || "");
   }, [activeStageIdx, activeGateStepIdx, stages.length]);
 
   // Helpers
   const getStatusColor = (status) => {
     const colors = {
-      'Approved': 'bg-green-100 text-green-800',     // âœ… green
-      'Revision': 'bg-yellow-100 text-yellow-800',   // âœ… yellow
-      'Pending': 'bg-red-100 text-red-800',          // âœ… red
-      'Completed': 'bg-green-100 text-green-800',
-      'default': 'bg-gray-100 text-gray-800',
+      Approved: "bg-green-100 text-green-800", // âœ… green
+      Revision: "bg-yellow-100 text-yellow-800", // âœ… yellow
+      Pending: "bg-red-100 text-red-800", // âœ… red
+      Completed: "bg-green-100 text-green-800",
+      default: "bg-gray-100 text-gray-800",
     };
 
     return colors[status] || colors.default;
   };
 
-
-
   // Helpers to safely update project state
   const mutateProject = (updater) => {
-    setProject(prev => {
+    setProject((prev) => {
       if (!prev) return prev;
       const copy = JSON.parse(JSON.stringify(prev));
       updater(copy);
@@ -336,17 +348,17 @@ export default function ProjectDashboard() {
 
     // Reset modal and clear fields
     setShowAddTaskDialog(false);
-    setNewTaskTitle('');
-    setNewTaskDescription('');
-    setNewTaskDueDate('');
+    setNewTaskTitle("");
+    setNewTaskDescription("");
+    setNewTaskDueDate("");
   };
 
   const handleQuickAddTask = () => {
     // Open the Edit modal for creating a new task (Quick Add flow)
     setIsQuickAdd(true);
     setEditTaskId(null);
-    setEditTitle(quickTaskTitle || '');
-    setEditDesc('');
+    setEditTitle(quickTaskTitle || "");
+    setEditDesc("");
     setShowEditDialog(true);
   };
   const handleMarkTaskDone = (taskId) => {
@@ -354,7 +366,7 @@ export default function ProjectDashboard() {
     const copy = JSON.parse(JSON.stringify(project));
 
     const stage = copy.stages?.[activeStageIdx];
-    const t = stage?.tasks?.find(t => t.task_id === taskId);
+    const t = stage?.tasks?.find((t) => t.task_id === taskId);
 
     if (t) {
       t.status = "Completed";
@@ -372,7 +384,7 @@ export default function ProjectDashboard() {
     const copy = JSON.parse(JSON.stringify(project));
 
     const stage = copy.stages?.[activeStageIdx];
-    const t = stage?.tasks?.find(t => t.task_id === taskId);
+    const t = stage?.tasks?.find((t) => t.task_id === taskId);
 
     if (t) {
       t.status = ""; // back to normal state
@@ -383,15 +395,14 @@ export default function ProjectDashboard() {
     postSaveProject(copy);
   };
 
-
   const handleEditTask = (taskId) => {
     const s = project?.stages?.[activeStageIdx];
-    const t = s?.tasks?.find(t => t.task_id === taskId);
+    const t = s?.tasks?.find((t) => t.task_id === taskId);
     if (!t) return;
 
     setEditTaskId(taskId);
-    setEditTitle(t.title || '');
-    setEditDesc(t.description || '');
+    setEditTitle(t.title || "");
+    setEditDesc(t.description || "");
     setShowEditDialog(true);
   };
 
@@ -424,7 +435,7 @@ export default function ProjectDashboard() {
           entity_type: "task",
           project_id: project.project_id,
           stage_id: stage.stage_id,
-          task_id: taskId,                 // this is the one that must arrive
+          task_id: taskId, // this is the one that must arrive
         },
         subject_domain: project.subject_domain || "General",
         reason: deleteReason || "No reason provided",
@@ -458,7 +469,7 @@ export default function ProjectDashboard() {
         console.error("Failed to send delete initiation", err);
         alert("Failed to send delete request. Please try again later.");
       })
-      .postToBackend(payload);            // pass OBJECT, not JSON string
+      .postToBackend(payload); // pass OBJECT, not JSON string
   };
 
   const fetchDeleteRequests = () => {
@@ -475,14 +486,15 @@ export default function ProjectDashboard() {
       google.script.run
         .withSuccessHandler((result) => {
           try {
-            const parsed = typeof result === "string" ? JSON.parse(result) : result;
+            const parsed =
+              typeof result === "string" ? JSON.parse(result) : result;
             resolve(parsed?.action_response?.requests || []);
           } catch (e) {
             reject(e);
           }
         })
         .withFailureHandler(reject)
-        .postToBackend(payload);          // object, not JSON string
+        .postToBackend(payload); // object, not JSON string
     });
   };
 
@@ -527,7 +539,7 @@ export default function ProjectDashboard() {
         .withSuccessHandler((res) => {
           console.log("Stage delete initiation sent:", res);
           alert("Stage delete request sent successfully.");
-          setDeleteStageReason('');
+          setDeleteStageReason("");
           setSelectedStageId(null);
         })
         .withFailureHandler((err) => {
@@ -586,7 +598,7 @@ export default function ProjectDashboard() {
     const copy = JSON.parse(JSON.stringify(project));
     const s = copy.stages?.[activeStageIdx];
     if (s?.tasks) {
-      const t = s.tasks.find(t => t.task_id === editTaskId);
+      const t = s.tasks.find((t) => t.task_id === editTaskId);
       if (t) {
         t.title = editTitle.trim() || t.title;
         t.description = editDesc.trim() || t.description;
@@ -604,14 +616,16 @@ export default function ProjectDashboard() {
       await postSaveProject(copy);
     } catch (e) {
       console.error(e);
-      alert("Failed to send revision. Your local edits are saved; please retry.");
+      alert(
+        "Failed to send revision. Your local edits are saved; please retry."
+      );
     }
   };
 
   // Gate step save/submit
   const handleSaveGateStep = () => {
     const stepKey = currentGateSteps[activeGateStepIdx];
-    mutateProject((p)=>{
+    mutateProject((p) => {
       const s = p.stages?.[activeStageIdx];
       if (!s) return;
       s.gate = s.gate || {};
@@ -620,20 +634,20 @@ export default function ProjectDashboard() {
         ...(s.gate.step_data[stepKey] || {}),
         objective: gateObjective,
         evidence: gateEvidence,
-        status: 'Draft'
+        status: "Draft",
       };
     });
-    addActivity('Gate Step Saved', stepKey);
+    addActivity("Gate Step Saved", stepKey);
   };
   const handleSubmitGateStep = () => {
     const stepKey = currentGateSteps[activeGateStepIdx];
-    mutateProject((p)=>{
+    mutateProject((p) => {
       const s = p.stages?.[activeStageIdx];
       if (!s?.gate?.step_data?.[stepKey]) return;
-      s.gate.step_data[stepKey].status = 'Submitted';
+      s.gate.step_data[stepKey].status = "Submitted";
     });
-    alert('Step submitted.');
-    addActivity('Gate Step Submitted', stepKey);
+    alert("Step submitted.");
+    addActivity("Gate Step Submitted", stepKey);
   };
 
   // Gate checklist actions
@@ -648,7 +662,7 @@ export default function ProjectDashboard() {
     stage.gate.checklist.push({
       title: newItemTitle.trim(),
       due_date: newItemDue || "",
-      status: "Pending Addition"
+      status: "Pending Addition",
     });
 
     // Optimistic UI
@@ -666,24 +680,22 @@ export default function ProjectDashboard() {
     postSaveProject(copy);
   };
 
-
-
   // Reflection actions (Gate checklist)
   const handleReflectionGateItem = (idx) => {
     setReflectionItemIdx(idx);
-    setReflectionText('');
+    setReflectionText("");
     setShowReflectionDialog(true);
   };
 
   const sendGateReflection = (stageId, checklistIndex, text) => {
     const payload = {
-      action: 'feedback',
+      action: "feedback",
       payload: {
-        request: 'student_gate_reflection',
+        request: "student_gate_reflection",
         actor: {
-          role: 'student',
-          email_id: 'mindspark.user1@schoolfuel.org',
-          user_id: '23e228fa-4592-4bdc-852e-192973c388ce',
+          role: "student",
+          email_id: "mindspark.user1@schoolfuel.org",
+          user_id: "23e228fa-4592-4bdc-852e-192973c388ce",
         },
         ids: {
           project_id: project?.project_id,
@@ -696,10 +708,10 @@ export default function ProjectDashboard() {
 
     google.script.run
       .withSuccessHandler((res) => {
-        console.log('Reflection sent:', res);
+        console.log("Reflection sent:", res);
       })
       .withFailureHandler((err) => {
-        console.error('Failed to send reflection', err);
+        console.error("Failed to send reflection", err);
       })
       .postToBackend(payload);
   };
@@ -709,20 +721,29 @@ export default function ProjectDashboard() {
     const s = stages[activeStageIdx];
     const stageId = s?.stage_id;
     const text = reflectionText.trim();
-    if (!text) { setShowReflectionDialog(false); return; }
+    if (!text) {
+      setShowReflectionDialog(false);
+      return;
+    }
 
     // Optimistic local save on the item
     mutateProject((p) => {
       const st = p.stages?.[activeStageIdx];
       if (!st?.gate?.checklist) return;
       const item = st.gate.checklist[reflectionItemIdx];
-      if (typeof item === 'string') {
-        st.gate.checklist[reflectionItemIdx] = { title: item, reflection: text };
+      if (typeof item === "string") {
+        st.gate.checklist[reflectionItemIdx] = {
+          title: item,
+          reflection: text,
+        };
       } else {
         item.reflection = text;
       }
     });
-    addActivity('Gate Reflection Added', `Item ${String(reflectionItemIdx + 1)}`);
+    addActivity(
+      "Gate Reflection Added",
+      `Item ${String(reflectionItemIdx + 1)}`
+    );
 
     // Backend send
     if (stageId) sendGateReflection(stageId, reflectionItemIdx, text);
@@ -730,7 +751,7 @@ export default function ProjectDashboard() {
     // Close modal
     setShowReflectionDialog(false);
     setReflectionItemIdx(null);
-    setReflectionText('');
+    setReflectionText("");
   };
 
   // Resource actions (student-side structured resources)
@@ -739,40 +760,46 @@ export default function ProjectDashboard() {
     const description = newResourceDescription.trim();
 
     if (!title || !description) {
-      setResourceFormError('Please enter both a title and a description before uploading a file.');
+      setResourceFormError(
+        "Please enter both a title and a description before uploading a file."
+      );
       return;
     }
 
-    setResourceFormError('');
+    setResourceFormError("");
     if (fileInputRef.current) fileInputRef.current.click();
   };
 
   const handleRemoveResource = (id) => {
     mutateProject((p) => {
-      p.resources = (p.resources || []).filter((r) => (r.resource_id || r.id) !== id);
+      p.resources = (p.resources || []).filter(
+        (r) => (r.resource_id || r.id) !== id
+      );
     });
-    addActivity('Resource Removed', id);
+    addActivity("Resource Removed", id);
   };
 
   const buildStudentResourceFromFile = (file, url, overrides = {}) => {
     const now = new Date().toISOString();
-    const resourceId = (typeof crypto !== 'undefined' && crypto.randomUUID)
-      ? crypto.randomUUID()
-      : `RES-${Math.floor(Math.random() * 9000 + 1000)}`;
+    const resourceId =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `RES-${Math.floor(Math.random() * 9000 + 1000)}`;
 
     const tags = Array.isArray(overrides.tags) ? overrides.tags : [];
 
     return {
       resource_id: resourceId,
       title: overrides.title || file.name,
-      description: overrides.description || '',
-      resource_type: overrides.resource_type || 'File',
-      resource_format: overrides.resource_format || file.type || 'file',
-      subject_domain: overrides.subject_domain || project?.subject_domain || 'general',
+      description: overrides.description || "",
+      resource_type: overrides.resource_type || "File",
+      resource_format: overrides.resource_format || file.type || "file",
+      subject_domain:
+        overrides.subject_domain || project?.subject_domain || "general",
       external_link_location: url,
-      source: overrides.source || 'student_created',
+      source: overrides.source || "student_created",
       is_deprecated: false,
-      intended_user: 'S',
+      intended_user: "S",
       tags,
       metadata: {
         filename: file.name,
@@ -823,7 +850,6 @@ export default function ProjectDashboard() {
       setProject(copy);
       // ❌ Do not auto-save to backend here
       // postSaveProject(copy);
-
     } finally {
       setUploading(false);
 
@@ -834,39 +860,45 @@ export default function ProjectDashboard() {
     }
   };
 
-
   const handleAddResourceFromForm = () => {
     const title = newResourceTitle.trim();
     const description = newResourceDescription.trim();
     const externalLink = newResourceLink.trim();
 
     if (!resourcesTaskId) {
-      setResourceFormError("Task reference missing. Close and reopen Resources.");
+      setResourceFormError(
+        "Task reference missing. Close and reopen Resources."
+      );
       return;
     }
 
-
     if (title.length < 5 || title.length > 120) {
-      setResourceFormError('Title should be between 5 and 120 characters.');
+      setResourceFormError("Title should be between 5 and 120 characters.");
       return;
     }
 
     if (externalLink && !/^https?:\/\//i.test(externalLink)) {
-      setResourceFormError('Please enter a valid URL starting with http:// or https://');
+      setResourceFormError(
+        "Please enter a valid URL starting with http:// or https://"
+      );
       return;
     }
 
-    setResourceFormError('');
+    setResourceFormError("");
 
-    const rawTags = newResourceTagsInput.split(',').map((t) => t.trim()).filter(Boolean);
-    const tags = rawTags.slice(0, 10).map((t) =>
-      t.toLowerCase().replace(/\s+/g, '_')
-    );
+    const rawTags = newResourceTagsInput
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    const tags = rawTags
+      .slice(0, 10)
+      .map((t) => t.toLowerCase().replace(/\s+/g, "_"));
 
     const now = new Date().toISOString();
-    const resourceId = (typeof crypto !== 'undefined' && crypto.randomUUID)
-      ? crypto.randomUUID()
-      : `RES-${Math.floor(Math.random() * 9000 + 1000)}`;
+    const resourceId =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `RES-${Math.floor(Math.random() * 9000 + 1000)}`;
 
     const resource = {
       resource_id: resourceId,
@@ -874,11 +906,12 @@ export default function ProjectDashboard() {
       description,
       resource_type: newResourceType,
       resource_format: newResourceFormat,
-      subject_domain: newResourceSubject || project?.subject_domain || 'general',
-      external_link_location: externalLink || '',
+      subject_domain:
+        newResourceSubject || project?.subject_domain || "general",
+      external_link_location: externalLink || "",
       source: newResourceSource,
       is_deprecated: false,
-      intended_user: 'S',
+      intended_user: "S",
       tags,
       metadata: {
         project_id: project?.project_id,
@@ -892,7 +925,7 @@ export default function ProjectDashboard() {
     const copy = JSON.parse(JSON.stringify(project));
 
     const stage = copy.stages[activeStageIdx];
-    const task = stage.tasks.find(t => t.task_id === resourcesTaskId);
+    const task = stage.tasks.find((t) => t.task_id === resourcesTaskId);
 
     if (!task) {
       setResourceFormError("Task not found. Please try again.");
@@ -910,16 +943,15 @@ export default function ProjectDashboard() {
     setShowAddResourceDialog(false);
     setLastUploadedFile(null);
 
-
     // Reset form fields
-    setNewResourceTitle('');
-    setNewResourceDescription('');
-    setNewResourceType('Lesson Plan');
-    setNewResourceFormat('pdf');
-    setNewResourceSubject('');
-    setNewResourceLink('');
-    setNewResourceSource('student_created');
-    setNewResourceTagsInput('');
+    setNewResourceTitle("");
+    setNewResourceDescription("");
+    setNewResourceType("Lesson Plan");
+    setNewResourceFormat("pdf");
+    setNewResourceSubject("");
+    setNewResourceLink("");
+    setNewResourceSource("student_created");
+    setNewResourceTagsInput("");
     setShowAddResourceDialog(false);
     setLastUploadedFile(null);
   };
@@ -927,7 +959,7 @@ export default function ProjectDashboard() {
   // UI actions
   const handleSubmitProject = () => {
     if (!canSubmit) return;
-    addActivity('Project Submitted', '');
+    addActivity("Project Submitted", "");
   };
 
   // Loading and error states
@@ -953,10 +985,11 @@ export default function ProjectDashboard() {
         {/* Project Header */}
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {project?.project_title || 'Project Title'}
+            {project?.project_title || "Project Title"}
           </h2>
           <p className="text-gray-600 mb-4">
-            {project?.description || 'Project description goes here. This should provide a brief overview of the project.'}
+            {project?.description ||
+              "Project description goes here. This should provide a brief overview of the project."}
           </p>
           <div className="flex flex-wrap gap-2">
             {project?.subject_domain && (
@@ -973,14 +1006,14 @@ export default function ProjectDashboard() {
                 {project.status}
               </span>
             )}
-
           </div>
         </div>
 
         {/* Project Locked Banner */}
         {isProjectLocked && (
           <div className="mb-6 p-3 bg-red-50 border border-red-300 text-red-700 text-sm rounded-md font-medium">
-            Your project is awaiting review! You will be able to make changes once it's approved.
+            Your project is awaiting review! You will be able to make changes
+            once it's approved.
           </div>
         )}
       </div>
@@ -989,17 +1022,17 @@ export default function ProjectDashboard() {
       <div className="px-6">
         <div className="flex items-center gap-6 border-b border-gray-300 mb-4">
           {[
-            { id: 'overview', label: 'Overview' },
-            { id: 'tasks', label: 'Tasks' },
-            { id: 'gate', label: 'Gate Checklist' },
+            { id: "overview", label: "Overview" },
+            { id: "tasks", label: "Tasks" },
+            { id: "gate", label: "Gate Checklist" },
             // { id: 'resources', label: 'Resources & Activity' },
           ].map((tab) => (
             <button
               key={tab.id}
               className={`text-sm pb-2 transition-all duration-200 ${
                 activeTab === tab.id
-                  ? 'border-b-2 border-purple-600 text-purple-700 font-medium'
-                  : 'border-transparent text-gray-600 hover:text-gray-800'
+                  ? "border-b-2 border-purple-600 text-purple-700 font-medium"
+                  : "border-transparent text-gray-600 hover:text-gray-800"
               }`}
               onClick={() => setActiveTab(tab.id)}
             >
@@ -1008,19 +1041,20 @@ export default function ProjectDashboard() {
           ))}
         </div>
 
-
         {/* --- Overview Tab --- */}
-        {activeTab === 'overview' && (
+        {activeTab === "overview" && (
           <div className="space-y-3">
             {/* Project stats and other overview content will go here */}
 
             <div className="flex justify-between items-center">
-              <h3 className="text-sm font-semibold text-gray-900">Project Snapshot</h3>
+              <h3 className="text-sm font-semibold text-gray-900">
+                Project Snapshot
+              </h3>
               <button
                 className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${
                   canSubmit
-                    ? 'bg-purple-600 text-white hover:bg-purple-700'
-                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    ? "bg-purple-600 text-white hover:bg-purple-700"
+                    : "bg-gray-200 text-gray-500 cursor-not-allowed"
                 }`}
                 disabled={!canSubmit}
                 onClick={handleSubmitProject}
@@ -1046,23 +1080,27 @@ export default function ProjectDashboard() {
             </div>
 
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-              <div className="font-semibold text-sm text-yellow-900 mb-1">Next Action</div>
+              <div className="font-semibold text-sm text-yellow-900 mb-1">
+                Next Action
+              </div>
               <div className="text-xs text-yellow-800">
                 {canSubmit
                   ? 'Ready to submit: click "Submit for Review".'
-                  : 'Complete at least 1 task and upload 1 resource to enable submission.'}
+                  : "Complete at least 1 task and upload 1 resource to enable submission."}
               </div>
             </div>
 
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-              <div className="font-semibold text-sm text-gray-900 mb-1">Reviewer</div>
+              <div className="font-semibold text-sm text-gray-900 mb-1">
+                Reviewer
+              </div>
               <div className="text-xs text-gray-600">Unassigned</div>
             </div>
           </div>
         )}
 
         {/* --- Tasks Tab --- */}
-        {activeTab === 'tasks' && (
+        {activeTab === "tasks" && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex gap-2 border-b border-gray-200">
@@ -1071,8 +1109,8 @@ export default function ProjectDashboard() {
                     key={s.stage_id || idx}
                     className={`px-3 py-1.5 text-xs rounded-t border-b-2 ${
                       idx === activeStageIdx
-                        ? 'border-purple-600 text-purple-700 font-medium'
-                        : 'border-transparent text-gray-600 hover:text-gray-800'
+                        ? "border-purple-600 text-purple-700 font-medium"
+                        : "border-transparent text-gray-600 hover:text-gray-800"
                     }`}
                     onClick={() => setActiveStageIdx(idx)}
                   >
@@ -1086,12 +1124,14 @@ export default function ProjectDashboard() {
               <div className="border border-gray-200 rounded overflow-hidden">
                 <div className="p-2 bg-gray-50">
                   <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-semibold text-gray-900">{stages[activeStageIdx].title}</h4>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {stages[activeStageIdx].tasks?.length || 0} tasks
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900">
+                        {stages[activeStageIdx].title}
+                      </h4>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {stages[activeStageIdx].tasks?.length || 0} tasks
+                      </div>
                     </div>
-                  </div>
                     <div className="flex flex-col items-end gap-2">
                       {/* Delete Stage button */}
                       <button
@@ -1101,7 +1141,8 @@ export default function ProjectDashboard() {
                           stages[activeStageIdx].status === "Pending Deletion"
                         }
                         onClick={() => {
-                          if (isProjectLocked || project?.status === "Pending") return;
+                          if (isProjectLocked || project?.status === "Pending")
+                            return;
                           setSelectedStageId(stages[activeStageIdx].stage_id);
                           setShowStageDeleteDialog(true);
                         }}
@@ -1118,10 +1159,8 @@ export default function ProjectDashboard() {
                           ? "Pending Deletion"
                           : "Delete Stage"}
                       </button>
-
-                      </div>
+                    </div>
                   </div>
-
                 </div>
 
                 <div className="p-2 pb-4 space-y-3">
@@ -1129,9 +1168,9 @@ export default function ProjectDashboard() {
                     <div
                       key={task.task_id}
                       className={`border border-gray-200 rounded-lg p-4 shadow-sm transition text-sm flex justify-between items-start gap-4 ${
-                        task.status === 'Completed'
-                          ? 'bg-green-50 opacity-80 cursor-not-allowed'
-                          : 'bg-white hover:shadow'
+                        task.status === "Completed"
+                          ? "bg-green-50 opacity-80 cursor-not-allowed"
+                          : "bg-white hover:shadow"
                       }`}
                     >
                       {/* Left Column: Task Info */}
@@ -1154,30 +1193,36 @@ export default function ProjectDashboard() {
                           )}
                         </h5>
 
-
                         {/* Description */}
                         {task.description && (
-                          <p className="text-gray-700 mt-1">{task.description}</p>
+                          <p className="text-gray-700 mt-1">
+                            {task.description}
+                          </p>
                         )}
 
                         {/* Due + Standards row */}
                         <div className="text-xs text-gray-600 mt-2 mb-2 flex flex-wrap gap-4">
                           <div>
-                            <span className="font-medium">Due:</span>{' '}
-                            {task.due_date
-                              ? new Date(task.due_date).toLocaleDateString()
-                              : <span className="italic text-gray-400">N/A</span>}
+                            <span className="font-medium">Due:</span>{" "}
+                            {task.due_date ? (
+                              new Date(task.due_date).toLocaleDateString()
+                            ) : (
+                              <span className="italic text-gray-400">N/A</span>
+                            )}
                           </div>
                           <div>
-                            <span className="font-medium">Standards:</span>{' '}
-                            {task.standards
-                              ? (Array.isArray(task.standards)
-                                  ? task.standards.join(', ')
-                                  : task.standards)
-                              : <span className="italic text-gray-400">N/A</span>}
+                            <span className="font-medium">Standards:</span>{" "}
+                            {task.standards ? (
+                              Array.isArray(task.standards) ? (
+                                task.standards.join(", ")
+                              ) : (
+                                task.standards
+                              )
+                            ) : (
+                              <span className="italic text-gray-400">N/A</span>
+                            )}
                           </div>
                         </div>
-
                       </div>
 
                       {/* Right Column: Actions */}
@@ -1195,7 +1240,8 @@ export default function ProjectDashboard() {
                             isProjectLocked ||
                             task.status === "Pending Deletion" ||
                             task.status === "Revision" ||
-                            stages[activeStageIdx]?.status === "Pending Deletion"
+                            stages[activeStageIdx]?.status ===
+                              "Pending Deletion"
                               ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                               : task.status === "Completed"
                               ? "bg-gray-500 text-white hover:bg-gray-600" // Undo style
@@ -1205,13 +1251,12 @@ export default function ProjectDashboard() {
                             isProjectLocked ||
                             task.status === "Pending Deletion" ||
                             task.status === "Revision" ||
-                            stages[activeStageIdx]?.status === "Pending Deletion"
+                            stages[activeStageIdx]?.status ===
+                              "Pending Deletion"
                           }
                         >
                           {task.status === "Completed" ? "Undo" : "Complete"}
                         </button>
-
-
 
                         {/* Edit Button */}
                         <button
@@ -1220,13 +1265,15 @@ export default function ProjectDashboard() {
                             isProjectLocked ||
                             task.status === "Completed" ||
                             task.status === "Pending Deletion" ||
-                            stages[activeStageIdx]?.status === "Pending Deletion"
+                            stages[activeStageIdx]?.status ===
+                              "Pending Deletion"
                           }
                           className={`text-xs px-3 py-1.5 rounded-md inline-flex items-center justify-center gap-1 w-[90px] ${
                             isProjectLocked ||
                             task.status === "Completed" ||
                             task.status === "Pending Deletion" ||
-                            stages[activeStageIdx]?.status === "Pending Deletion"
+                            stages[activeStageIdx]?.status ===
+                              "Pending Deletion"
                               ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                               : "bg-blue-600 text-white hover:bg-blue-700"
                           }`}
@@ -1242,21 +1289,20 @@ export default function ProjectDashboard() {
                           disabled={
                             task.status === "Completed" ||
                             task.status === "Pending Deletion" ||
-                            stages[activeStageIdx]?.status === "Pending Deletion"
+                            stages[activeStageIdx]?.status ===
+                              "Pending Deletion"
                           }
                           className={`text-xs px-3 py-1.5 rounded-md w-[90px] ${
-                      
                             task.status === "Completed" ||
                             task.status === "Pending Deletion" ||
-                            stages[activeStageIdx]?.status === "Pending Deletion"
+                            stages[activeStageIdx]?.status ===
+                              "Pending Deletion"
                               ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                               : "bg-purple-600 text-white hover:bg-purple-700"
                           }`}
                         >
                           Resources
                         </button>
-
-
 
                         {/* Delete Button */}
                         <button
@@ -1269,24 +1315,26 @@ export default function ProjectDashboard() {
                             task.status === "Completed" ||
                             task.status === "Pending Deletion" ||
                             task.status === "Revision" ||
-                            stages[activeStageIdx]?.status === "Pending Deletion"
+                            stages[activeStageIdx]?.status ===
+                              "Pending Deletion"
                           }
                           className={`text-xs px-3 py-1.5 rounded-md inline-flex items-center justify-center gap-1 w-[90px] ${
                             isProjectLocked ||
                             task.status === "Completed" ||
                             task.status === "Pending Deletion" ||
                             task.status === "Revision" ||
-                            stages[activeStageIdx]?.status === "Pending Deletion"
+                            stages[activeStageIdx]?.status ===
+                              "Pending Deletion"
                               ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                               : "bg-red-600 text-white hover:bg-red-700"
                           }`}
                         >
                           <Trash2 size={12} />
-                          {task.status === "Pending Deletion" ? "Pending Deletion" : "Delete"}
+                          {task.status === "Pending Deletion"
+                            ? "Pending Deletion"
+                            : "Delete"}
                         </button>
-
                       </div>
-
                     </div>
                   ))}
                 </div>
@@ -1313,7 +1361,6 @@ export default function ProjectDashboard() {
                     >
                       <Plus size={14} /> Add Task
                     </button>
-
                   </div>
                 </div>
               </div>
@@ -1322,7 +1369,7 @@ export default function ProjectDashboard() {
         )}
 
         {/* --- Gate Checklist Tab --- */}
-        {activeTab === 'gate' && (
+        {activeTab === "gate" && (
           <div className="space-y-3">
             {/* Stage Tabs */}
             <div className="flex items-center justify-between">
@@ -1332,8 +1379,8 @@ export default function ProjectDashboard() {
                     key={s.stage_id || idx}
                     className={`px-3 py-1.5 text-xs rounded-t border-b-2 ${
                       idx === activeStageIdx
-                        ? 'border-purple-600 text-purple-700 font-medium'
-                        : 'border-transparent text-gray-600 hover:text-gray-800'
+                        ? "border-purple-600 text-purple-700 font-medium"
+                        : "border-transparent text-gray-600 hover:text-gray-800"
                     }`}
                     onClick={() => setActiveStageIdx(idx)}
                   >
@@ -1351,11 +1398,16 @@ export default function ProjectDashboard() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-xs font-medium text-gray-900">
-                        {stages[activeStageIdx].gate?.description || 'Gate Description'}
+                        {stages[activeStageIdx].gate?.description ||
+                          "Gate Description"}
                       </h4>
                       <div className="text-xs text-gray-500 mt-1">
-                        {(stages[activeStageIdx].gate?.checklist?.length || 0)} checklist item
-                        {(stages[activeStageIdx].gate?.checklist?.length || 0) !== 1 ? 's' : ''}
+                        {stages[activeStageIdx].gate?.checklist?.length || 0}{" "}
+                        checklist item
+                        {(stages[activeStageIdx].gate?.checklist?.length ||
+                          0) !== 1
+                          ? "s"
+                          : ""}
                       </div>
                     </div>
                   </div>
@@ -1376,8 +1428,8 @@ export default function ProjectDashboard() {
                             onClick={() => {
                               if (isProjectLocked) return;
                               setEditChecklistIndex(idx);
-                              setEditChecklistTitle(item?.title || item || '');
-                              setEditChecklistDue(item?.due_date || '');
+                              setEditChecklistTitle(item?.title || item || "");
+                              setEditChecklistDue(item?.due_date || "");
                               setShowChecklistEditDialog(true);
                             }}
                             className={`text-xs px-3 py-1.5 rounded-md w-[90px] ${
@@ -1389,49 +1441,49 @@ export default function ProjectDashboard() {
                             Edit
                           </button>
 
-                        
-                         <button
-                          disabled={isProjectLocked}
-                          onClick={() => !isProjectLocked && handleReflectionGateItem(idx)}
-                          className={`text-xs px-3 py-1.5 rounded-md w-[90px] ${
-                            isProjectLocked
-                              ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                              : "bg-green-500 text-white hover:bg-green-600"
-                          }`}
-                        >
-                          Reflection
-                        </button>
-
+                          <button
+                            disabled={isProjectLocked}
+                            onClick={() =>
+                              !isProjectLocked && handleReflectionGateItem(idx)
+                            }
+                            className={`text-xs px-3 py-1.5 rounded-md w-[90px] ${
+                              isProjectLocked
+                                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                                : "bg-green-500 text-white hover:bg-green-600"
+                            }`}
+                          >
+                            Reflection
+                          </button>
                         </div>
 
                         {/* Checklist Item Title */}
                         <h5 className="font-semibold text-gray-900 flex items-center gap-2 pr-28">
-
                           {/* Title – handles string OR object correctly */}
-                          {typeof item === "string" ? item : (item.title || `Checklist Item ${idx + 1}`)}
+                          {typeof item === "string"
+                            ? item
+                            : item.title || `Checklist Item ${idx + 1}`}
 
                           {/* Status badge (only if object AND status exists) */}
                           {typeof item === "object" && item.status && (
                             <span
                               className={`text-[10px] px-2 py-0.5 rounded
-                                ${item.status === "Pending Addition"
-                                  ? "bg-gray-200 text-gray-700"
-                                  : item.status === "Revision"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : ""}`}
+                                ${
+                                  item.status === "Pending Addition"
+                                    ? "bg-gray-200 text-gray-700"
+                                    : item.status === "Revision"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : ""
+                                }`}
                             >
                               {item.status}
                             </span>
                           )}
-
                         </h5>
-
-
 
                         {/* Due + Standards Row */}
                         <div className="text-xs text-gray-600 mt-2 mb-2 flex flex-wrap gap-4">
                           <div>
-                            <span className="font-medium">Due:</span>{' '}
+                            <span className="font-medium">Due:</span>{" "}
                             {item?.due_date ? (
                               new Date(item.due_date).toLocaleDateString()
                             ) : (
@@ -1439,11 +1491,13 @@ export default function ProjectDashboard() {
                             )}
                           </div>
                           <div>
-                            <span className="font-medium">Standards:</span>{' '}
+                            <span className="font-medium">Standards:</span>{" "}
                             {item?.standards ? (
-                              Array.isArray(item.standards)
-                                ? item.standards.join(', ')
-                                : item.standards
+                              Array.isArray(item.standards) ? (
+                                item.standards.join(", ")
+                              ) : (
+                                item.standards
+                              )
                             ) : (
                               <span className="italic text-gray-400">N/A</span>
                             )}
@@ -1453,14 +1507,20 @@ export default function ProjectDashboard() {
                         {/* Feedback + Final Grade */}
                         <div className="grid grid-cols-2 gap-3 mt-6 pt-2">
                           <div className="border border-gray-100 rounded p-3 bg-gray-50">
-                            <h6 className="text-xs font-semibold text-gray-700 mb-1">FEEDBACK</h6>
+                            <h6 className="text-xs font-semibold text-gray-700 mb-1">
+                              FEEDBACK
+                            </h6>
                             <p className="text-xs text-gray-600">
                               No feedback yet. Awaiting instructor evaluation.
                             </p>
                           </div>
                           <div className="border border-gray-100 rounded p-3 bg-gray-50">
-                            <h6 className="text-xs font-semibold text-gray-700 mb-1">FINAL GRADE</h6>
-                            <p className="text-xs text-gray-800 font-medium">Not Yet Proficient</p>
+                            <h6 className="text-xs font-semibold text-gray-700 mb-1">
+                              FINAL GRADE
+                            </h6>
+                            <p className="text-xs text-gray-800 font-medium">
+                              Not Yet Proficient
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -1479,8 +1539,8 @@ export default function ProjectDashboard() {
                       onClick={() => {
                         if (isProjectLocked) return;
                         setShowAddItemDialog(true);
-                        setNewItemTitle('');
-                        setNewItemDue('');
+                        setNewItemTitle("");
+                        setNewItemDue("");
                       }}
                       className={`inline-flex items-center gap-2 text-xs px-3 py-2 rounded-lg ${
                         isProjectLocked
@@ -1490,7 +1550,6 @@ export default function ProjectDashboard() {
                     >
                       <Plus size={14} /> Add Item
                     </button>
-
                   </div>
                 </div>
               </div>
@@ -1499,14 +1558,28 @@ export default function ProjectDashboard() {
         )}
 
         {/* --- Resources & Activity Tab (light placeholder using existing state shape if provided) --- */}
-        {activeTab === 'resources' && (
+        {activeTab === "resources" && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-gray-900">Resources</h3>
               <div className="flex items-center gap-2">
-                <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelected} />
-                <button onClick={handleAttachResource} disabled={uploading} className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded ${uploading ? 'bg-gray-300 text-gray-600 cursor-not-allowed' : 'bg-purple-600 text-white hover:bg-purple-700'}`}>
-                  <Upload size={12}/>{uploading ? 'Uploading...' : 'Upload File'}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileSelected}
+                />
+                <button
+                  onClick={handleAttachResource}
+                  disabled={uploading}
+                  className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded ${
+                    uploading
+                      ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                      : "bg-purple-600 text-white hover:bg-purple-700"
+                  }`}
+                >
+                  <Upload size={12} />
+                  {uploading ? "Uploading..." : "Upload File"}
                 </button>
               </div>
             </div>
@@ -1514,24 +1587,32 @@ export default function ProjectDashboard() {
               {(project?.resources || []).length === 0 && (
                 <div className="text-xs text-gray-500">No resources yet.</div>
               )}
-              {(project?.resources || []).map(r => {
+              {(project?.resources || []).map((r) => {
                 const id = r.resource_id || r.id;
                 const format = r.resource_format || r.kind;
                 const size = r.size;
-                const url = r?.metadata?.file_url || r.external_link_location || r.url;
+                const url =
+                  r?.metadata?.file_url || r.external_link_location || r.url;
                 return (
-                  <div key={id} className="flex items-center justify-between text-xs border border-gray-200 rounded p-2">
+                  <div
+                    key={id}
+                    className="flex items-center justify-between text-xs border border-gray-200 rounded p-2"
+                  >
                     <div className="flex items-center gap-2">
                       <FolderOpen size={14} className="text-gray-500" />
                       <div>
-                        <div className="font-medium text-gray-900">{r.title}</div>
+                        <div className="font-medium text-gray-900">
+                          {r.title}
+                        </div>
                         {r.description && (
-                          <div className="text-[11px] text-gray-600 mt-0.5">{r.description}</div>
+                          <div className="text-[11px] text-gray-600 mt-0.5">
+                            {r.description}
+                          </div>
                         )}
                         <div className="text-gray-500">
-                          {r.resource_type || 'Resource'}
-                          {format ? ` • ${format}` : ''}
-                          {size ? ` • ${(size/1024).toFixed(1)} KB` : ''}
+                          {r.resource_type || "Resource"}
+                          {format ? ` • ${format}` : ""}
+                          {size ? ` • ${(size / 1024).toFixed(1)} KB` : ""}
                         </div>
                         {url && (
                           <a
@@ -1553,26 +1634,36 @@ export default function ProjectDashboard() {
                         Remove
                       </button>
                     )}
-
                   </div>
                 );
               })}
             </div>
             <div className="pt-3 border-t border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">Activity</h3>
-              {!(project?.activity?.length) && (
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                Activity
+              </h3>
+              {!project?.activity?.length && (
                 <div className="text-xs text-gray-500">No activity yet.</div>
               )}
               <div className="space-y-2">
-                {(project?.activity || []).map(a => {
+                {(project?.activity || []).map((a) => {
                   // Check if this is a resource-related activity
-                  const isResourceActivity = a.action?.toLowerCase().includes('resource') || a.details?.toLowerCase().includes('upload');
-                  const resourceInfo = isResourceActivity ? (project?.resources || []).find(r => 
-                    a.details?.includes(r.resource_id) || a.details?.includes(r.title)
-                  ) : null;
-                  
+                  const isResourceActivity =
+                    a.action?.toLowerCase().includes("resource") ||
+                    a.details?.toLowerCase().includes("upload");
+                  const resourceInfo = isResourceActivity
+                    ? (project?.resources || []).find(
+                        (r) =>
+                          a.details?.includes(r.resource_id) ||
+                          a.details?.includes(r.title)
+                      )
+                    : null;
+
                   return (
-                    <div key={a.id} className="border border-gray-200 rounded p-3">
+                    <div
+                      key={a.id}
+                      className="border border-gray-200 rounded p-3"
+                    >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
                           <div className="font-medium text-gray-900 text-sm">
@@ -1580,7 +1671,8 @@ export default function ProjectDashboard() {
                           </div>
                           {resourceInfo && (
                             <div className="text-xs text-gray-600 mt-1">
-                              {resourceInfo.metadata?.filename || resourceInfo.title}
+                              {resourceInfo.metadata?.filename ||
+                                resourceInfo.title}
                             </div>
                           )}
                         </div>
@@ -1588,28 +1680,38 @@ export default function ProjectDashboard() {
                           {new Date(a.at).toLocaleDateString()}
                         </div>
                       </div>
-                      
+
                       {resourceInfo && (
                         <div className="flex items-center gap-4 text-xs text-gray-500 mb-2">
-                          <span>{(resourceInfo.metadata?.size ? (resourceInfo.metadata.size/1024).toFixed(1) : '0')} KB</span>
-                          <span>Uploaded {new Date(a.at).toLocaleDateString()}</span>
+                          <span>
+                            {resourceInfo.metadata?.size
+                              ? (resourceInfo.metadata.size / 1024).toFixed(1)
+                              : "0"}{" "}
+                            KB
+                          </span>
+                          <span>
+                            Uploaded {new Date(a.at).toLocaleDateString()}
+                          </span>
                         </div>
                       )}
-                      
+
                       <div className="text-xs text-gray-600">
                         {resourceInfo?.description || a.details}
                       </div>
-                      
+
                       {resourceInfo?.tags && resourceInfo.tags.length > 0 && (
                         <div className="mt-2">
                           {resourceInfo.tags.map((tag, idx) => (
-                            <span key={idx} className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded mr-1">
+                            <span
+                              key={idx}
+                              className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded mr-1"
+                            >
                               {tag}
                             </span>
                           ))}
                         </div>
                       )}
-                      
+
                       <div className="flex gap-2 mt-3">
                         <button className="text-xs px-2 py-1 rounded bg-purple-600 text-white hover:bg-purple-700 inline-flex items-center gap-1">
                           Open
@@ -1629,7 +1731,9 @@ export default function ProjectDashboard() {
       {showDeleteDialog && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="bg-white p-6 rounded-xl shadow-lg w-[420px]">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirm Deletion</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+              Confirm Deletion
+            </h2>
             <p className="text-sm text-gray-700 mb-4">
               Are you sure you want to delete this task?
             </p>
@@ -1648,7 +1752,7 @@ export default function ProjectDashboard() {
               <button
                 onClick={() => {
                   setShowDeleteDialog(false);
-                  setDeleteReason('');     // â† reset on close
+                  setDeleteReason(""); // â† reset on close
                 }}
                 className="text-sm px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
               >
@@ -1656,7 +1760,7 @@ export default function ProjectDashboard() {
               </button>
 
               <button
-                 onClick={() => handleConfirmDelete(selectedTaskId)}
+                onClick={() => handleConfirmDelete(selectedTaskId)}
                 className="text-sm px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition"
               >
                 Yes, Delete
@@ -1672,7 +1776,6 @@ export default function ProjectDashboard() {
             <h2 className="mb-2 text-lg font-semibold text-gray-900">
               {isQuickAdd ? "Add Task" : "Edit Task"}
             </h2>
-
 
             <label className="mb-1 block text-xs font-medium text-gray-700">
               Title
@@ -1693,7 +1796,6 @@ export default function ProjectDashboard() {
               rows={4}
               className="mb-5 w-full rounded-md border p-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
               placeholder="Task description"
-
             />
 
             {/* Due Date */}
@@ -1702,11 +1804,10 @@ export default function ProjectDashboard() {
             </label>
             <input
               type="date"
-              value={editDue || ''}
+              value={editDue || ""}
               onChange={(e) => setEditDue(e.target.value)}
               className="mb-5 w-full rounded-md border p-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
-
 
             <div className="flex justify-end gap-2">
               <button
@@ -1720,40 +1821,45 @@ export default function ProjectDashboard() {
                 Close
               </button>
               <button
-                onClick={isQuickAdd ? (() => {
-                  const title = editTitle.trim();
-                  if (!title) return;
-                  const newTask = {
-                    task_id: `TSK-${Math.floor(Math.random()*9000+1000)}`,
-                    title,
-                    description: editDesc.trim(),
-                    status: "Pending Addition",
-                    due_date: editDue || ""
-                  };
+                onClick={
+                  isQuickAdd
+                    ? () => {
+                        const title = editTitle.trim();
+                        if (!title) return;
+                        const newTask = {
+                          task_id: `TSK-${Math.floor(
+                            Math.random() * 9000 + 1000
+                          )}`,
+                          title,
+                          description: editDesc.trim(),
+                          status: "Pending Addition",
+                          due_date: editDue || "",
+                        };
 
-                  const copy = JSON.parse(JSON.stringify(project));
-                  const stage = copy.stages?.[activeStageIdx];
-                  stage.tasks.push(newTask);
+                        const copy = JSON.parse(JSON.stringify(project));
+                        const stage = copy.stages?.[activeStageIdx];
+                        stage.tasks.push(newTask);
 
-                  // Optimistic UI update
-                  setProject(copy);
-                  addActivity("Task Added", title);
-                  setShowEditDialog(false);
+                        // Optimistic UI update
+                        setProject(copy);
+                        addActivity("Task Added", title);
+                        setShowEditDialog(false);
 
-                  // Send to backend
-                  postSaveProject(copy);
+                        // Send to backend
+                        postSaveProject(copy);
 
-                  // Reset fields
-                  setIsQuickAdd(false);
-                  setEditTaskId(null);
-                  setEditTitle("");
-                  setEditDesc("");
-                  setEditDue("");
-
-                }) : handleSubmitRevision}
+                        // Reset fields
+                        setIsQuickAdd(false);
+                        setEditTaskId(null);
+                        setEditTitle("");
+                        setEditDesc("");
+                        setEditDue("");
+                      }
+                    : handleSubmitRevision
+                }
                 className="rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600"
               >
-                {isQuickAdd ? 'Save Task' : 'Send for Revision'}
+                {isQuickAdd ? "Save Task" : "Send for Revision"}
               </button>
             </div>
           </div>
@@ -1763,7 +1869,9 @@ export default function ProjectDashboard() {
       {showStageDeleteDialog && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
           <div className="bg-white rounded-2xl shadow-xl w-[420px] border border-gray-200 p-6 animate-fadeIn">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Confirm Stage Deletion</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+              Confirm Stage Deletion
+            </h2>
             <p className="text-sm text-gray-600 mb-4">
               Are you sure you want to delete this stage?
             </p>
@@ -1782,7 +1890,7 @@ export default function ProjectDashboard() {
               <button
                 onClick={() => {
                   setShowStageDeleteDialog(false);
-                  setDeleteStageReason('');
+                  setDeleteStageReason("");
                 }}
                 className="text-sm px-4 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
               >
@@ -1806,7 +1914,10 @@ export default function ProjectDashboard() {
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-semibold text-gray-900">Resources</h2>
               <button
-                onClick={() => { setShowResourcesDialog(false); setResourcesTaskId(null); }}
+                onClick={() => {
+                  setShowResourcesDialog(false);
+                  setResourcesTaskId(null);
+                }}
                 className="rounded-md bg-gray-200 px-3 py-1.5 text-xs text-gray-800 hover:bg-gray-300"
               >
                 Close
@@ -1830,30 +1941,32 @@ export default function ProjectDashboard() {
 
                 // ➋ Student resources belonging to this task
                 const studentResources = (project?.resources || []).filter(
-                  r => r?.metadata?.resourcesTaskId === resourcesTaskId
+                  (r) => r?.metadata?.resourcesTaskId === resourcesTaskId
                 );
 
                 taskResources.push(...studentResources);
-
 
                 taskResources.map((r, idx) => (
                   <div key={idx} className="flex items-start ...">
                     <div className="font-medium">{r.title}</div>
 
-                    <a href={r.url} target="_blank" className="text-blue-600 underline">
+                    <a
+                      href={r.url}
+                      target="_blank"
+                      className="text-blue-600 underline"
+                    >
                       Open
                     </a>
 
                     {r.description && <p>{r.description}</p>}
                   </div>
-                ))
-
-
+                ));
 
                 if (taskResources.length === 0) {
                   return (
                     <div className="text-sm text-gray-600 italic">
-                      No resources yet for this task. Use the Add Resource button below to add one.
+                      No resources yet for this task. Use the Add Resource
+                      button below to add one.
                     </div>
                   );
                 }
@@ -1864,20 +1977,31 @@ export default function ProjectDashboard() {
                   const size = r.size;
                   const createdAt = r.created_at;
                   const updatedAt = r.updated_at;
-                  const url = r?.metadata?.file_url || r.external_link_location || r.url;
+                  const url =
+                    r?.metadata?.file_url || r.external_link_location || r.url;
                   return (
-                    <div key={id} className="flex items-start justify-between border border-gray-200 rounded p-2">
+                    <div
+                      key={id}
+                      className="flex items-start justify-between border border-gray-200 rounded p-2"
+                    >
                       <div className="flex items-start gap-2">
-                        <FolderOpen size={14} className="mt-0.5 text-gray-500" />
+                        <FolderOpen
+                          size={14}
+                          className="mt-0.5 text-gray-500"
+                        />
                         <div>
-                          <div className="font-medium text-gray-900">{r.title}</div>
+                          <div className="font-medium text-gray-900">
+                            {r.title}
+                          </div>
                           {r.description && (
-                            <div className="text-xs text-gray-600 mt-0.5">{r.description}</div>
+                            <div className="text-xs text-gray-600 mt-0.5">
+                              {r.description}
+                            </div>
                           )}
                           <div className="text-gray-500">
-                            {r.resource_type || 'Resource'}
-                            {format ? ` • ${format}` : ''}
-                            {size ? `  • ${(size / 1024).toFixed(1)} KB` : ''}
+                            {r.resource_type || "Resource"}
+                            {format ? ` • ${format}` : ""}
+                            {size ? `  • ${(size / 1024).toFixed(1)} KB` : ""}
                           </div>
                           {url && (
                             <a
@@ -1888,7 +2012,8 @@ export default function ProjectDashboard() {
                             >
                               {r.metadata?.filename ? (
                                 <>
-                                  View file ({r.metadata.filename}) <ExternalLink size={10} />
+                                  View file ({r.metadata.filename}){" "}
+                                  <ExternalLink size={10} />
                                 </>
                               ) : (
                                 <>
@@ -1900,11 +2025,17 @@ export default function ProjectDashboard() {
                           {(createdAt || updatedAt) && (
                             <div className="mt-1 text-[11px] text-gray-500">
                               {createdAt && (
-                                <span>Created: {new Date(createdAt).toLocaleString()}</span>
+                                <span>
+                                  Created:{" "}
+                                  {new Date(createdAt).toLocaleString()}
+                                </span>
                               )}
                               {createdAt && updatedAt && <span> • </span>}
                               {updatedAt && (
-                                <span>Updated: {new Date(updatedAt).toLocaleString()}</span>
+                                <span>
+                                  Updated:{" "}
+                                  {new Date(updatedAt).toLocaleString()}
+                                </span>
                               )}
                             </div>
                           )}
@@ -1926,15 +2057,14 @@ export default function ProjectDashboard() {
               <button
                 type="button"
                 onClick={() => {
-                  setResourceFormError('');
-                  setLastUploadedFile(null);   
-                  setNewResourceTitle('');
-                  setNewResourceDescription('');
-                  setNewResourceLink('');
-                  setNewResourceTagsInput('');
+                  setResourceFormError("");
+                  setLastUploadedFile(null);
+                  setNewResourceTitle("");
+                  setNewResourceDescription("");
+                  setNewResourceLink("");
+                  setNewResourceTagsInput("");
                   setShowAddResourceDialog(true);
                 }}
-
                 className="inline-flex items-center gap-2 text-xs px-3 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700"
               >
                 <Plus size={14} /> Add Resource
@@ -1948,17 +2078,18 @@ export default function ProjectDashboard() {
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40">
           <div className="w-[720px] rounded-2xl bg-white p-6 shadow-lg">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold text-gray-900">Add Resource</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Add Resource
+              </h2>
               <button
                 onClick={() => {
                   setShowAddResourceDialog(false);
-                  setLastUploadedFile(null); 
-                  setNewResourceTitle('');
-                  setNewResourceDescription('');
-                  setNewResourceLink('');
-                  setNewResourceTagsInput('');
+                  setLastUploadedFile(null);
+                  setNewResourceTitle("");
+                  setNewResourceDescription("");
+                  setNewResourceLink("");
+                  setNewResourceTagsInput("");
                 }}
-
                 className="rounded-md bg-gray-200 px-3 py-1.5 text-xs text-gray-800 hover:bg-gray-300"
               >
                 Close
@@ -1973,7 +2104,7 @@ export default function ProjectDashboard() {
                     {lastUploadedFile.name}
                     {lastUploadedFile.size
                       ? ` (${(lastUploadedFile.size / 1024).toFixed(1)} KB)`
-                      : ''}
+                      : ""}
                   </div>
                 </div>
                 <a
@@ -2012,7 +2143,9 @@ export default function ProjectDashboard() {
             <div className="grid grid-cols-2 gap-4 mb-4 text-xs">
               <div className="space-y-2">
                 <div>
-                  <label className="block font-medium text-gray-700 mb-1">Title</label>
+                  <label className="block font-medium text-gray-700 mb-1">
+                    Title
+                  </label>
                   <input
                     value={newResourceTitle}
                     onChange={(e) => setNewResourceTitle(e.target.value)}
@@ -2022,7 +2155,9 @@ export default function ProjectDashboard() {
                 </div>
 
                 <div>
-                  <label className="block font-medium text-gray-700 mb-1">Description</label>
+                  <label className="block font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
                   <textarea
                     value={newResourceDescription}
                     onChange={(e) => setNewResourceDescription(e.target.value)}
@@ -2033,7 +2168,9 @@ export default function ProjectDashboard() {
                 </div>
 
                 <div>
-                  <label className="block font-medium text-gray-700 mb-1">External Link (optional)</label>
+                  <label className="block font-medium text-gray-700 mb-1">
+                    External Link (optional)
+                  </label>
                   <input
                     value={newResourceLink}
                     onChange={(e) => setNewResourceLink(e.target.value)}
@@ -2045,7 +2182,9 @@ export default function ProjectDashboard() {
 
               <div className="space-y-2">
                 <div>
-                  <label className="block font-medium text-gray-700 mb-1">Resource Type</label>
+                  <label className="block font-medium text-gray-700 mb-1">
+                    Resource Type
+                  </label>
                   <select
                     value={newResourceType}
                     onChange={(e) => setNewResourceType(e.target.value)}
@@ -2060,7 +2199,9 @@ export default function ProjectDashboard() {
                 </div>
 
                 <div>
-                  <label className="block font-medium text-gray-700 mb-1">Format</label>
+                  <label className="block font-medium text-gray-700 mb-1">
+                    Format
+                  </label>
                   <select
                     value={newResourceFormat}
                     onChange={(e) => setNewResourceFormat(e.target.value)}
@@ -2069,15 +2210,19 @@ export default function ProjectDashboard() {
                     <option value="pdf">PDF</option>
                     <option value="video_stream">Video stream</option>
                     <option value="link">Link</option>
-                    <option value="interactive_web_app">Interactive web app</option>
+                    <option value="interactive_web_app">
+                      Interactive web app
+                    </option>
                     <option value="doc">Document</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block font-medium text-gray-700 mb-1">Subject</label>
+                  <label className="block font-medium text-gray-700 mb-1">
+                    Subject
+                  </label>
                   <input
-                    value={newResourceSubject || project?.subject_domain || ''}
+                    value={newResourceSubject || project?.subject_domain || ""}
                     onChange={(e) => setNewResourceSubject(e.target.value)}
                     placeholder="e.g. math, science, ela"
                     className="w-full rounded-md border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -2085,7 +2230,9 @@ export default function ProjectDashboard() {
                 </div>
 
                 <div>
-                  <label className="block font-medium text-gray-700 mb-1">Source</label>
+                  <label className="block font-medium text-gray-700 mb-1">
+                    Source
+                  </label>
                   <select
                     value={newResourceSource}
                     onChange={(e) => setNewResourceSource(e.target.value)}
@@ -2098,7 +2245,9 @@ export default function ProjectDashboard() {
                 </div>
 
                 <div>
-                  <label className="block font-medium text-gray-700 mb-1">Tags (comma-separated, max 10)</label>
+                  <label className="block font-medium text-gray-700 mb-1">
+                    Tags (comma-separated, max 10)
+                  </label>
                   <input
                     value={newResourceTagsInput}
                     onChange={(e) => setNewResourceTagsInput(e.target.value)}
@@ -2139,8 +2288,12 @@ export default function ProjectDashboard() {
       {showReflectionDialog && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
           <div className="w-[520px] rounded-2xl bg-white p-6 shadow-lg">
-            <h2 className="mb-2 text-lg font-semibold text-gray-900">Reflection</h2>
-            <label className="mb-1 block text-xs font-medium text-gray-700">Feedback to Teacher</label>
+            <h2 className="mb-2 text-lg font-semibold text-gray-900">
+              Reflection
+            </h2>
+            <label className="mb-1 block text-xs font-medium text-gray-700">
+              Feedback to Teacher
+            </label>
             <textarea
               value={reflectionText}
               onChange={(e) => setReflectionText(e.target.value)}
@@ -2149,8 +2302,21 @@ export default function ProjectDashboard() {
               placeholder="Write your reflection/feedback here..."
             />
             <div className="flex justify-end gap-2">
-              <button onClick={() => { setShowReflectionDialog(false); setReflectionItemIdx(null); }} className="rounded-md bg-gray-200 px-4 py-2 text-sm text-gray-800 hover:bg-gray-300">Close</button>
-              <button onClick={handleSaveReflection} className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">Save</button>
+              <button
+                onClick={() => {
+                  setShowReflectionDialog(false);
+                  setReflectionItemIdx(null);
+                }}
+                className="rounded-md bg-gray-200 px-4 py-2 text-sm text-gray-800 hover:bg-gray-300"
+              >
+                Close
+              </button>
+              <button
+                onClick={handleSaveReflection}
+                className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
@@ -2159,7 +2325,9 @@ export default function ProjectDashboard() {
       {showAddItemDialog && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
           <div className="w-[480px] rounded-2xl bg-white p-6 shadow-lg">
-            <h2 className="mb-3 text-lg font-semibold text-gray-900">Add Checklist Item</h2>
+            <h2 className="mb-3 text-lg font-semibold text-gray-900">
+              Add Checklist Item
+            </h2>
 
             {/* Title */}
             <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -2205,7 +2373,6 @@ export default function ProjectDashboard() {
       {showChecklistEditDialog && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
           <div className="w-[520px] rounded-2xl bg-white p-6 shadow-lg">
-            
             <h2 className="mb-2 text-lg font-semibold text-gray-900">
               Edit Checklist Item
             </h2>
@@ -2227,7 +2394,7 @@ export default function ProjectDashboard() {
             </label>
             <input
               type="date"
-              value={editChecklistDue || ''}
+              value={editChecklistDue || ""}
               onChange={(e) => setEditChecklistDue(e.target.value)}
               className="mb-5 w-full rounded-md border p-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
@@ -2255,10 +2422,12 @@ export default function ProjectDashboard() {
                   const currentItem = stage.gate.checklist[idx];
 
                   stage.gate.checklist[idx] = {
-                    ...(typeof currentItem === "string" ? { title: currentItem } : currentItem),
+                    ...(typeof currentItem === "string"
+                      ? { title: currentItem }
+                      : currentItem),
                     title: editChecklistTitle.trim(),
-                    due_date: editChecklistDue || '',
-                    status: "Revision"
+                    due_date: editChecklistDue || "",
+                    status: "Revision",
                   };
 
                   // Update UI
@@ -2279,13 +2448,9 @@ export default function ProjectDashboard() {
                 Save Item
               </button>
             </div>
-
           </div>
         </div>
       )}
-
-
-
     </div>
   );
 }

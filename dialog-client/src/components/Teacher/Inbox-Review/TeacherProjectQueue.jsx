@@ -2316,6 +2316,13 @@ export default function TeacherProjectQueue() {
                                       invokerEmail="teacher1@gmail.com"
                                       studentId={editableProjectData.user_id}
                                       gateId={currentStage.gate?.gate_id}
+                                      studentName={
+                                        editableProjectData?.Student_Name ||
+                                        editableProjectData?.student_name ||
+                                        editableProjectData?.owner_name ||
+                                        editableProjectData?.owner ||
+                                        ""
+                                      }
                                       onUpdate={(field, index, value) => {
                                         const stageIndex =
                                           editableProjectData.stages.findIndex(
@@ -2503,8 +2510,14 @@ export default function TeacherProjectQueue() {
                                         }}
                                       >
                                         {(currentStage.status ||
-                                          stageStatuses[currentStage.stage_id]) === "Pending" ? "Not Reviewed" : (currentStage.status ||
-                                            stageStatuses[currentStage.stage_id])}
+                                          stageStatuses[
+                                            currentStage.stage_id
+                                          ]) === "Pending"
+                                          ? "Not Reviewed"
+                                          : currentStage.status ||
+                                            stageStatuses[
+                                              currentStage.stage_id
+                                            ]}
                                       </div>
                                     ) : (
                                       <div
