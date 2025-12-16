@@ -166,55 +166,68 @@ export default function TeacherProjectQueue() {
           .withSuccessHandler(async (response) => {
             try {
               let projects = [];
+              const projectsSet = new Set(); // Track project_ids to prevent duplicates
 
+              // Helper function to add projects without duplicates
+              const addProjects = (projectArray) => {
+                if (Array.isArray(projectArray)) {
+                  projectArray.forEach((project) => {
+                    const projectId = project.project_id || project.id;
+                    if (projectId && !projectsSet.has(projectId)) {
+                      projects.push(project);
+                      projectsSet.add(projectId);
+                    }
+                  });
+                }
+              };
+
+              // Check all possible response structures, but only add each project once
               if (response && response.body) {
                 const body = response.body;
-                if (Array.isArray(body.projects)) {
-                  projects = body.projects;
-                } else if (
-                  body.action_response &&
-                  Array.isArray(body.action_response.projects)
-                ) {
-                  projects = body.action_response.projects;
-                } else if (body.projects && Array.isArray(body.projects)) {
-                  projects = body.projects;
-                } else if (
-                  body.action_response?.json?.projects &&
-                  Array.isArray(body.action_response.json.projects)
-                ) {
-                  projects = body.action_response.json.projects;
-                }
-              } else if (
-                response &&
-                response.action_response &&
-                Array.isArray(response.action_response.projects)
-              ) {
-                projects = response.action_response.projects;
-              } else if (
-                response &&
-                response.action_response?.json?.projects &&
-                Array.isArray(response.action_response.json.projects)
-              ) {
-                projects = response.action_response.json.projects;
-              } else if (Array.isArray(response)) {
-                projects = response;
+                addProjects(body.projects);
+                addProjects(body.action_response?.projects);
+                addProjects(body.action_response?.json?.projects);
               }
 
-              const mappedProjects = projects.map((project) => ({
-                project_id: project.project_id || project.id,
-                user_id: project.user_id,
-                title: project.title || project.project_title || "",
-                project_title: project.title || project.project_title || "",
-                subject_domain: project.subject_domain || "",
-                status: project.status || "New Project",
-                owner_name: project.Student_Name || project.owner_name || "",
-                owner_email: project.owner_email || "",
-                description: project.description || "",
-                project_feedback:
-                  project.project_feedback || project.feedback || "",
-                created_at: project.created_at || new Date().toISOString(),
-                stages: project.stages || [],
-              }));
+              if (response) {
+                addProjects(response.action_response?.projects);
+                addProjects(response.action_response?.json?.projects);
+                addProjects(response.projects);
+                if (Array.isArray(response)) {
+                  addProjects(response);
+                }
+              }
+
+              // Map projects and deduplicate by project_id
+              const projectMap = new Map();
+              projects.forEach((project) => {
+                const projectId = project.project_id || project.id;
+                if (projectId) {
+                  // Only keep the first occurrence of each project_id
+                  if (!projectMap.has(projectId)) {
+                    projectMap.set(projectId, {
+                      project_id: projectId,
+                      user_id: project.user_id,
+                      title: project.title || project.project_title || "",
+                      project_title:
+                        project.title || project.project_title || "",
+                      subject_domain: project.subject_domain || "",
+                      status: project.status || "New Project",
+                      owner_name:
+                        project.Student_Name || project.owner_name || "",
+                      owner_email: project.owner_email || "",
+                      description: project.description || "",
+                      project_feedback:
+                        project.project_feedback || project.feedback || "",
+                      created_at:
+                        project.created_at || new Date().toISOString(),
+                      stages: project.stages || [],
+                    });
+                  }
+                }
+              });
+
+              const mappedProjects = Array.from(projectMap.values());
 
               setProjects(mappedProjects);
               setLoading(false);
@@ -231,7 +244,17 @@ export default function TeacherProjectQueue() {
                       mappedProjects,
                       deletionRequestsList
                     );
-                    setProjects(flaggedProjects);
+                    // Deduplicate again after flagging
+                    const flaggedProjectMap = new Map();
+                    flaggedProjects.forEach((project) => {
+                      if (
+                        project.project_id &&
+                        !flaggedProjectMap.has(project.project_id)
+                      ) {
+                        flaggedProjectMap.set(project.project_id, project);
+                      }
+                    });
+                    setProjects(Array.from(flaggedProjectMap.values()));
                   })
                   .catch((err) => {
                     console.error("Error loading deletion requests:", err);
