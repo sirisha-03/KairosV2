@@ -490,6 +490,115 @@ function rejectDeletionRequest(requestId) {
  * @param {String} status - The new status (e.g., "Approved", "Pending Revision")
  * @returns {Object} Response with success status and message
  */
+/**
+ * Log the JSON structure for debugging (smart logging to avoid truncation)
+ * @param {Object} data - The data object to log
+ * @param {String} label - Label for the log entry
+ */
+function logFullJSON(data, label) {
+  try {
+    Logger.log("========================================");
+    Logger.log("=== " + (label || "JSON LOG") + " ===");
+    Logger.log("========================================");
+    Logger.log("Timestamp: " + new Date().toISOString());
+    Logger.log("");
+    
+    // First, log a summary of the structure
+    Logger.log("--- STRUCTURE SUMMARY ---");
+    if (data.project_id) {
+      Logger.log("Project ID: " + data.project_id);
+    }
+    if (data.user_id) {
+      Logger.log("User ID: " + data.user_id);
+    }
+    if (data.stages && Array.isArray(data.stages)) {
+      Logger.log("Number of stages: " + data.stages.length);
+      data.stages.forEach((stage, idx) => {
+        Logger.log("  Stage " + (idx + 1) + ": " + (stage.title || stage.stage_id));
+        Logger.log("    - Status: " + (stage.status || "N/A"));
+        Logger.log("    - Tasks count: " + (stage.tasks ? stage.tasks.length : 0));
+        Logger.log("    - Feedback count: " + (stage.feedback ? stage.feedback.length : 0));
+        if (stage.gate && stage.gate.feedback) {
+          Logger.log("    - Gate feedback: " + (stage.gate.feedback.length > 50 ? stage.gate.feedback.substring(0, 50) + "..." : stage.gate.feedback));
+        }
+      });
+    }
+    Logger.log("");
+    
+    // Log payload structure if it exists
+    if (data.action) {
+      Logger.log("--- PAYLOAD STRUCTURE ---");
+      Logger.log("Action: " + data.action);
+      if (data.payload) {
+        Logger.log("Payload keys: " + Object.keys(data.payload).join(", "));
+        if (data.payload.submission_type) {
+          Logger.log("Submission type: " + data.payload.submission_type);
+        }
+        if (data.payload.json && data.payload.json.project) {
+          Logger.log("Project in payload: Yes");
+          Logger.log("Project ID: " + (data.payload.json.project.project_id || "N/A"));
+          Logger.log("Stages in payload: " + (data.payload.json.project.stages ? data.payload.json.project.stages.length : 0));
+        }
+      }
+      Logger.log("");
+    }
+    
+    // Log feedback entries specifically (most important part)
+    if (data.stages && Array.isArray(data.stages)) {
+      Logger.log("--- FEEDBACK ENTRIES ---");
+      data.stages.forEach((stage, idx) => {
+        if (stage.feedback && Array.isArray(stage.feedback) && stage.feedback.length > 0) {
+          Logger.log("Stage " + (idx + 1) + " (" + (stage.title || stage.stage_id) + "):");
+          stage.feedback.forEach((fb, fbIdx) => {
+            Logger.log("  Feedback " + (fbIdx + 1) + ":");
+            Logger.log("    Type: " + (fb.feedback_type || "N/A"));
+            Logger.log("    Entity: " + (fb.entity_type || "N/A"));
+            Logger.log("    Created by: " + (fb.created_by || "N/A"));
+            Logger.log("    Created at: " + (fb.created_at || "N/A"));
+            Logger.log("    Comment: " + (fb.comment ? (fb.comment.length > 100 ? fb.comment.substring(0, 100) + "..." : fb.comment) : "N/A"));
+          });
+        } else if (stage.gate && stage.gate.feedback) {
+          Logger.log("Stage " + (idx + 1) + " (" + (stage.title || stage.stage_id) + "):");
+          Logger.log("  Gate feedback: " + stage.gate.feedback);
+        }
+      });
+      Logger.log("");
+    }
+    
+    // Try to log full JSON, but limit size to avoid truncation
+    const jsonString = JSON.stringify(data, null, 2);
+    const maxLogSize = 30000; // Reduced to avoid truncation
+    
+    if (jsonString.length <= maxLogSize) {
+      Logger.log("--- FULL JSON (within size limit) ---");
+      Logger.log(jsonString);
+    } else {
+      Logger.log("--- JSON TOO LARGE TO LOG FULLY ---");
+      Logger.log("Total size: " + jsonString.length + " characters");
+      Logger.log("Logging first " + maxLogSize + " characters...");
+      Logger.log(jsonString.substring(0, maxLogSize));
+      Logger.log("... (truncated) ...");
+      Logger.log("");
+      Logger.log("To see full JSON, check the payload sent to backend in network logs.");
+    }
+    
+    Logger.log("========================================");
+    Logger.log("=== END " + (label || "JSON LOG") + " ===");
+    Logger.log("========================================");
+    Logger.log("");
+  } catch (error) {
+    Logger.log("ERROR in logFullJSON: " + error.toString());
+    Logger.log("Error message: " + error.message);
+    try {
+      Logger.log("Attempting to log data summary...");
+      Logger.log("Data type: " + typeof data);
+      Logger.log("Data keys: " + (data && typeof data === "object" ? Object.keys(data).join(", ") : "N/A"));
+    } catch (e) {
+      Logger.log("Could not log data summary");
+    }
+  }
+}
+
 function saveTeacherProjectUpdate(projectData, status) {
   if (!projectData) throw new Error("Missing projectData");
   if (!projectData.project_id) throw new Error("Missing project_id");
@@ -506,6 +615,9 @@ function saveTeacherProjectUpdate(projectData, status) {
     Logger.log("Input status: " + status);
     Logger.log("Input project_id: " + projectData.project_id);
     Logger.log("Input user_id: " + projectData.user_id);
+    
+    // Log the full incoming project data
+    logFullJSON(projectData, "INCOMING PROJECT DATA");
 
     // Add status to project data if provided (null means preserve existing status)
     // Deep clone projectData to avoid mutating the original
@@ -549,8 +661,8 @@ function saveTeacherProjectUpdate(projectData, status) {
       },
     };
 
-    Logger.log("=== PAYLOAD TO SEND ===");
-    Logger.log(JSON.stringify(payload, null, 2));
+    // Log the full payload JSON
+    logFullJSON(payload, "PROJECT UPDATE PAYLOAD");
 
     const options = {
       method: "POST",
@@ -632,6 +744,133 @@ function saveTeacherProjectUpdate(projectData, status) {
           "An unexpected error occurred. Please contact support if the problem persists.",
       };
     }
+  }
+}
+
+/**
+ * Send teacher feedback at stage level
+ * @param {Object} projectData - The project data with stages containing feedback
+ * @param {String} teacherEmail - The email of the teacher (defaults to "teacher1@gmail.com")
+ * @returns {Object} Response with success status
+ */
+function sendTeacherStageFeedback(projectData, teacherEmail) {
+  if (!projectData) throw new Error("Missing projectData");
+  if (!projectData.project_id) throw new Error("Missing project_id");
+  if (!projectData.user_id) throw new Error("Missing user_id");
+
+  const email = teacherEmail || "teacher1@gmail.com";
+  const url =
+    "https://a3trgqmu4k.execute-api.us-west-1.amazonaws.com/prod/invoke";
+
+  try {
+    Logger.log("=== sendTeacherStageFeedback START ===");
+    Logger.log("Project ID: " + projectData.project_id);
+    Logger.log("User ID: " + projectData.user_id);
+    Logger.log("Teacher Email: " + email);
+    
+    // Log the full incoming feedback project data
+    logFullJSON(projectData, "INCOMING FEEDBACK PROJECT DATA");
+
+    // Ensure no tasks are included in the feedback payload to prevent duplication
+    const cleanProjectData = JSON.parse(JSON.stringify(projectData));
+    if (cleanProjectData.stages && Array.isArray(cleanProjectData.stages)) {
+      cleanProjectData.stages = cleanProjectData.stages.map((stage) => {
+        const cleanStage = {
+          stage_id: stage.stage_id,
+          title: stage.title,
+          status: stage.status,
+          stage_order: stage.stage_order,
+          created_at: stage.created_at,
+        };
+        
+        // Only include feedback array, explicitly exclude tasks
+        if (stage.feedback && Array.isArray(stage.feedback)) {
+          cleanStage.feedback = stage.feedback;
+        }
+        
+        // Log warning if tasks were found (shouldn't happen but good to know)
+        if (stage.tasks) {
+          Logger.log("WARNING: Tasks found in feedback payload for stage " + stage.stage_id + " - excluding them");
+        }
+        
+        return cleanStage;
+      });
+    }
+
+    // Prepare payload in the exact format specified by the user
+    // The structure matches: submission_type, user_id, email_id, generatedAt, json
+    const payload = {
+      submission_type: "teacher_feedback",
+      user_id: String(cleanProjectData.user_id),
+      email_id: email,
+      generatedAt: new Date().toISOString(),
+      json: {
+        project: cleanProjectData,
+      },
+    };
+
+    // Log the full feedback payload JSON
+    logFullJSON(payload, "TEACHER FEEDBACK PAYLOAD");
+    
+    // Wrap in action/payload structure for postToBackend compatibility
+    const backendPayload = {
+      action: "saveproject",
+      payload: payload,
+    };
+    
+    // Log the final backend payload structure
+    logFullJSON(backendPayload, "FINAL BACKEND PAYLOAD (with action wrapper)");
+
+    const options = {
+      method: "POST",
+      contentType: "application/json",
+      payload: JSON.stringify(backendPayload),
+      muteHttpExceptions: true,
+    };
+
+    Logger.log("Sending request to: " + url);
+    const response = UrlFetchApp.fetch(url, options);
+    const responseCode = response.getResponseCode();
+    const responseText = response.getContentText();
+
+    Logger.log("=== API RESPONSE ===");
+    Logger.log("Response Code: " + responseCode);
+    Logger.log("Response Text: " + responseText);
+
+    if (responseCode < 200 || responseCode >= 300) {
+      throw new Error("API " + responseCode + ": " + responseText);
+    }
+
+    let responseData;
+    try {
+      responseData = JSON.parse(responseText);
+      Logger.log(
+        "Parsed response data keys: " + Object.keys(responseData).join(", ")
+      );
+    } catch (e) {
+      Logger.log("ERROR: Failed to parse response as JSON: " + e.toString());
+      throw new Error("Bad JSON response: " + responseText);
+    }
+
+    Logger.log("=== sendTeacherStageFeedback SUCCESS ===");
+    return {
+      success: true,
+      statusCode: responseCode,
+      message: "Teacher feedback sent successfully",
+      data: responseData,
+    };
+  } catch (error) {
+    Logger.log("=== ERROR in sendTeacherStageFeedback ===");
+    Logger.log("Error type: " + error.toString());
+    Logger.log("Error message: " + error.message);
+    console.error("Error in sendTeacherStageFeedback:", error);
+
+    return {
+      success: false,
+      message:
+        error.message ||
+        "An unexpected error occurred while sending feedback. Please try again.",
+    };
   }
 }
 

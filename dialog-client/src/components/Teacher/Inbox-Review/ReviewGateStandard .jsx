@@ -154,7 +154,12 @@ const ReviewGateStandard = ({
               learningStandards: (checklist.standards || []).map((std) => ({
                 lsCode: std.code || "",
                 lsDescription: std.description || "",
-                percentage: parseFloat(std.percentage) || 0,
+                percentage:
+                  std.percentage !== null &&
+                  std.percentage !== undefined &&
+                  std.percentage !== ""
+                    ? parseFloat(std.percentage) || ""
+                    : "",
                 gate_standard: std.gate_standard,
                 standard_id: std.standard_id,
               })),
@@ -261,7 +266,7 @@ const ReviewGateStandard = ({
     updated[checklistIndex].learningStandards.push({
       lsCode: "",
       lsDescription: "",
-      percentage: 0,
+      percentage: "",
     });
 
     setChecklistItems(updated);
@@ -281,8 +286,17 @@ const ReviewGateStandard = ({
 
     // Validate percentage
     if (field === "percentage") {
-      const numValue = parseFloat(value) || 0;
-      ls.percentage = Math.min(100, Math.max(0, numValue));
+      // Allow empty string for clearing
+      if (value === "" || value === null || value === undefined) {
+        ls.percentage = "";
+      } else {
+        const numValue = parseFloat(value);
+        if (!isNaN(numValue)) {
+          ls.percentage = Math.min(100, Math.max(0, numValue));
+        } else {
+          ls.percentage = "";
+        }
+      }
     } else {
       ls[field] = value;
     }
@@ -386,9 +400,16 @@ const ReviewGateStandard = ({
         if (ls.standard_id) {
           // Use standard_id as key to deduplicate
           if (!standardsMap.has(ls.standard_id)) {
+            // Only include percentage if it's a valid number
+            const percentage =
+              ls.percentage === "" ||
+              ls.percentage === null ||
+              ls.percentage === undefined
+                ? 0
+                : parseFloat(ls.percentage) || 0;
             standardsMap.set(ls.standard_id, {
               standard_id: ls.standard_id,
-              percentage: parseFloat(ls.percentage) || 0,
+              percentage: percentage,
             });
           }
         }
@@ -711,7 +732,13 @@ const ReviewGateStandard = ({
                                   min="0"
                                   max="100"
                                   step="0.1"
-                                  value={ls.percentage || 0}
+                                  value={
+                                    ls.percentage === "" ||
+                                    ls.percentage === null ||
+                                    ls.percentage === undefined
+                                      ? ""
+                                      : ls.percentage
+                                  }
                                   onChange={(e) =>
                                     updateLearningStandard(
                                       activeTabIndex,
@@ -722,7 +749,7 @@ const ReviewGateStandard = ({
                                   }
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
                                   disabled={isDisabled}
-                                  placeholder="0-100"
+                                  placeholder="0"
                                 />
                                 <span className="text-sm text-gray-500 whitespace-nowrap">
                                   %

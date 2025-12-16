@@ -395,6 +395,34 @@ export default function TeacherProjectQueue() {
           }
 
           if (fetchedProject) {
+            // Use fetchedProject stages as primary source, but deduplicate tasks
+            const stages = (fetchedProject.stages || project.stages || []).map(
+              (stage) => {
+                if (!stage.tasks || !Array.isArray(stage.tasks)) {
+                  return stage;
+                }
+
+                // Deduplicate tasks by task_id to prevent duplicates
+                const taskMap = new Map();
+                stage.tasks.forEach((task) => {
+                  if (task.task_id) {
+                    // Only keep the first occurrence of each task_id
+                    if (!taskMap.has(task.task_id)) {
+                      taskMap.set(task.task_id, task);
+                    }
+                  } else {
+                    // If no task_id, keep it (shouldn't happen but handle gracefully)
+                    taskMap.set(Math.random().toString(), task);
+                  }
+                });
+
+                return {
+                  ...stage,
+                  tasks: Array.from(taskMap.values()),
+                };
+              }
+            );
+
             projectDetails = {
               ...project,
               ...fetchedProject,
@@ -415,12 +443,35 @@ export default function TeacherProjectQueue() {
                 project.project_feedback ||
                 project.feedback ||
                 "",
-              stages: fetchedProject.stages || project.stages || [],
+              stages: stages,
             };
           } else {
+            // Also deduplicate tasks in project.stages
+            const stages = (project.stages || []).map((stage) => {
+              if (!stage.tasks || !Array.isArray(stage.tasks)) {
+                return stage;
+              }
+
+              const taskMap = new Map();
+              stage.tasks.forEach((task) => {
+                if (task.task_id) {
+                  if (!taskMap.has(task.task_id)) {
+                    taskMap.set(task.task_id, task);
+                  }
+                } else {
+                  taskMap.set(Math.random().toString(), task);
+                }
+              });
+
+              return {
+                ...stage,
+                tasks: Array.from(taskMap.values()),
+              };
+            });
+
             projectDetails = {
               ...project,
-              stages: project.stages || [],
+              stages: stages,
             };
           }
 
@@ -615,6 +666,168 @@ export default function TeacherProjectQueue() {
     }
   };
 
+  // Function to send teacher feedback at stage level
+  const sendTeacherFeedback = async (
+    projectData,
+    teacherEmail = "teacher1@gmail.com"
+  ) => {
+    try {
+      if (!projectData || !projectData.project_id || !projectData.user_id) {
+        console.warn("Missing project data for feedback submission");
+        return { success: false, message: "Missing project data" };
+      }
+
+      // Check if there are any feedbacks to send
+      const hasFeedback = Object.keys(stageFeedbacks).some(
+        (stageId) =>
+          stageFeedbacks[stageId] && stageFeedbacks[stageId].trim() !== ""
+      );
+
+      if (!hasFeedback) {
+        console.log("No feedback to send");
+        return { success: true, message: "No feedback to send" };
+      }
+
+      // Build minimal project structure with only feedback data (exclude tasks to prevent duplicates)
+      const feedbackProjectData = {
+        project_id: projectData.project_id,
+        user_id: projectData.user_id,
+        title: projectData.title || projectData.project_title,
+        project_title: projectData.project_title || projectData.title,
+        Student_Name:
+          projectData.Student_Name ||
+          projectData.student_name ||
+          projectData.owner_name,
+        subject_domain: projectData.subject_domain,
+        description: projectData.description,
+        status: projectData.status,
+        stages: projectData.stages
+          ? projectData.stages.map((stage) => {
+              const feedbackText = stageFeedbacks[stage.stage_id];
+
+              // Only include stage metadata and feedback, exclude tasks and all other properties
+              const stageData = {
+                stage_id: stage.stage_id,
+                title: stage.title,
+                status: stage.status,
+                stage_order: stage.stage_order,
+                created_at: stage.created_at,
+                feedback: [], // Initialize empty feedback array
+              };
+
+              // Preserve existing feedback entries (only feedback objects, nothing else)
+              // Deduplicate existing feedback to prevent duplicates
+              const existingFeedbackMap = new Map();
+              if (stage.feedback && Array.isArray(stage.feedback)) {
+                stage.feedback
+                  .filter(
+                    (fb) =>
+                      fb &&
+                      typeof fb === "object" &&
+                      (fb.feedback_type === "teacher" ||
+                        fb.entity_type === "stage")
+                  )
+                  .forEach((fb) => {
+                    // Create unique key to deduplicate
+                    const uniqueKey = `${fb.comment || ""}-${
+                      fb.created_at || ""
+                    }-${fb.created_by || ""}`;
+                    // Only keep the first occurrence
+                    if (!existingFeedbackMap.has(uniqueKey)) {
+                      existingFeedbackMap.set(uniqueKey, {
+                        feedback_type: fb.feedback_type || "teacher",
+                        entity_type: fb.entity_type || "stage",
+                        comment: fb.comment || "",
+                        created_by: fb.created_by || teacherEmail,
+                        created_at: fb.created_at || new Date().toISOString(),
+                      });
+                    }
+                  });
+              }
+
+              // Convert map to array
+              stageData.feedback = Array.from(existingFeedbackMap.values());
+
+              // If there's new feedback, check if it's a duplicate before adding
+              if (feedbackText !== undefined && feedbackText.trim() !== "") {
+                const newFeedbackEntry = {
+                  feedback_type: "teacher",
+                  entity_type: "stage",
+                  comment: feedbackText.trim(),
+                  created_by: teacherEmail,
+                  created_at: new Date().toISOString(),
+                };
+
+                // Check if this feedback already exists (same comment, same creator)
+                const newFeedbackKey = `${newFeedbackEntry.comment}-${newFeedbackEntry.created_at}-${newFeedbackEntry.created_by}`;
+                const isDuplicate = Array.from(existingFeedbackMap.keys()).some(
+                  (key) => {
+                    // Compare comment and created_by (ignore timestamp for duplicate check)
+                    const existing = existingFeedbackMap.get(key);
+                    return (
+                      existing &&
+                      existing.comment === newFeedbackEntry.comment &&
+                      existing.created_by === newFeedbackEntry.created_by
+                    );
+                  }
+                );
+
+                // Only add if it's not a duplicate
+                if (!isDuplicate) {
+                  stageData.feedback.push(newFeedbackEntry);
+                }
+              }
+
+              // Explicitly ensure no tasks property exists
+              if (stageData.tasks) {
+                delete stageData.tasks;
+              }
+
+              return stageData;
+            })
+          : [],
+      };
+
+      // Prepare payload in the format expected by backend
+      // The structure matches the user's JSON example with submission_type
+      const payload = {
+        submission_type: "teacher_feedback",
+        user_id: String(projectData.user_id),
+        email_id: teacherEmail,
+        generatedAt: new Date().toISOString(),
+        json: {
+          project: feedbackProjectData,
+        },
+      };
+
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((response) => {
+            console.log("Teacher feedback sent successfully:", response);
+            if (response && response.success) {
+              resolve({ success: true, data: response });
+            } else {
+              resolve({
+                success: false,
+                message: response?.message || "Failed to send feedback",
+              });
+            }
+          })
+          .withFailureHandler((error) => {
+            console.error("Error sending teacher feedback:", error);
+            reject({
+              success: false,
+              message: error.message || "Failed to send feedback",
+            });
+          })
+          .sendTeacherStageFeedback(feedbackProjectData, teacherEmail);
+      });
+    } catch (err) {
+      console.error("Error in sendTeacherFeedback:", err);
+      return { success: false, message: err.message || "Unknown error" };
+    }
+  };
+
   const handleSubmitAll = async () => {
     try {
       if (!editableProjectData || !selectedProject) {
@@ -666,45 +879,72 @@ export default function TeacherProjectQueue() {
       setIsSaving(true);
       setSuccessMessage("");
       setErrorMessage("");
-      google.script.run
-        .withSuccessHandler((response) => {
-          setIsSaving(false);
-          if (response.success) {
-            setProjects((prev) =>
-              prev.map((p) =>
-                p.project_id === selectedProject.project_id
-                  ? { ...p, status: overallStatus }
-                  : p
-              )
-            );
 
-            if (projectDetails) {
-              setProjectDetails((prev) => ({ ...prev, status: overallStatus }));
-            }
+      // Send teacher feedback separately if there are any feedbacks
+      const feedbackPromises = [];
+      const hasFeedback = Object.keys(stageFeedbacks).some(
+        (stageId) =>
+          stageFeedbacks[stageId] && stageFeedbacks[stageId].trim() !== ""
+      );
 
-            setHasUnsavedChanges(false);
-            setInitialStageStatuses(stageStatuses);
-            setSuccessMessage("All stage decisions submitted successfully!");
-            setErrorMessage("");
+      if (hasFeedback) {
+        feedbackPromises.push(sendTeacherFeedback(editableProjectData));
+      }
 
-            setTimeout(() => {
-              closeDialog();
-            }, 2000);
-          } else {
-            setIsSaving(false);
-            setErrorMessage(response.message || "Failed to submit decisions");
-            setSuccessMessage("");
-          }
-        })
-        .withFailureHandler((error) => {
-          setIsSaving(false);
-          console.error("Error submitting decisions:", error);
-          setErrorMessage(
-            "Error submitting decisions: " + (error.message || "Unknown error")
+      // Send project update (status changes)
+      const updatePromise = new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((response) => {
+            resolve(response);
+          })
+          .withFailureHandler((error) => {
+            reject(error);
+          })
+          .saveTeacherProjectUpdate(projectDataToSave, overallStatus);
+      });
+
+      // Wait for both operations to complete
+      try {
+        const results = await Promise.all([...feedbackPromises, updatePromise]);
+        const updateResult = results[results.length - 1];
+
+        setIsSaving(false);
+        if (updateResult.success) {
+          setProjects((prev) =>
+            prev.map((p) =>
+              p.project_id === selectedProject.project_id
+                ? { ...p, status: overallStatus }
+                : p
+            )
           );
+
+          if (projectDetails) {
+            setProjectDetails((prev) => ({ ...prev, status: overallStatus }));
+          }
+
+          setHasUnsavedChanges(false);
+          setInitialStageStatuses(stageStatuses);
+          setSuccessMessage(
+            "All stage decisions and feedback submitted successfully!"
+          );
+          setErrorMessage("");
+
+          setTimeout(() => {
+            closeDialog();
+          }, 2000);
+        } else {
+          setIsSaving(false);
+          setErrorMessage(updateResult.message || "Failed to submit decisions");
           setSuccessMessage("");
-        })
-        .saveTeacherProjectUpdate(projectDataToSave, overallStatus);
+        }
+      } catch (error) {
+        setIsSaving(false);
+        console.error("Error submitting decisions:", error);
+        setErrorMessage(
+          "Error submitting decisions: " + (error.message || "Unknown error")
+        );
+        setSuccessMessage("");
+      }
     } catch (err) {
       setIsSaving(false);
       console.error("Error submitting decisions:", err);
@@ -2262,7 +2502,10 @@ export default function TeacherProjectQueue() {
                                               );
                                             return (
                                               <ReviewTaskCard
-                                                key={taskIndex}
+                                                key={
+                                                  task.task_id ||
+                                                  `task-${stageIndex}-${taskIndex}`
+                                                }
                                                 task={task}
                                                 taskIndex={taskIndex}
                                                 stageIndex={stageIndex}
@@ -2369,87 +2612,214 @@ export default function TeacherProjectQueue() {
 
                                 {/* Stage Feedback Section */}
                                 <div className="mt-6 pt-6 border-t border-gray-200">
-                                  <label className="block text-xs font-semibold text-gray-500 mb-2">
-                                    STAGE FEEDBACK
-                                  </label>
-                                  {/* Display existing feedback if available and different from current */}
-                                  {currentStage.gate?.feedback &&
-                                    (!stageFeedbacks[currentStage.stage_id] ||
-                                      stageFeedbacks[currentStage.stage_id] !==
-                                        currentStage.gate.feedback) && (
+                                  <div className="block text-xs font-semibold text-gray-500 mb-2">
+                                    TEACHER FEEDBACK
+                                  </div>
+
+                                  {/* New Feedback Textarea */}
+                                  <div className="mb-4">
+                                    <textarea
+                                      value={
+                                        stageFeedbacks[currentStage.stage_id] ||
+                                        ""
+                                      }
+                                      placeholder="Enter new feedback for this stage..."
+                                      onChange={(e) => {
+                                        setStageFeedbacks((prev) => ({
+                                          ...prev,
+                                          [currentStage.stage_id]:
+                                            e.target.value,
+                                        }));
+                                        setHasUnsavedChanges(true);
+                                        setSuccessMessage("");
+                                        setErrorMessage("");
+                                      }}
+                                      className="w-full px-3 py-2 border rounded-lg text-sm text-gray-700 min-h-[3rem] focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-y"
+                                      rows={1}
+                                      style={{
+                                        lineHeight: "1.5",
+                                      }}
+                                    />
+                                  </div>
+
+                                  {/* Previous Feedback Entries (Read-only) */}
+                                  {((currentStage.feedback &&
+                                    Array.isArray(currentStage.feedback) &&
+                                    currentStage.feedback.length > 0) ||
+                                    (currentStage.gate?.feedback &&
+                                      currentStage.gate.feedback &&
+                                      typeof currentStage.gate.feedback ===
+                                        "string" &&
+                                      currentStage.gate.feedback.trim() !==
+                                        "")) && (
+                                    <div className="mt-6 pt-4 border-t border-gray-200">
                                       <div
                                         style={{
+                                          fontSize: "12px",
+                                          fontWeight: 600,
+                                          color: "#1e40af",
                                           marginBottom: "12px",
-                                          padding: "12px 16px",
-                                          backgroundColor: "#f0f9ff",
-                                          border: "1px solid #bfdbfe",
-                                          borderRadius: "6px",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          gap: "6px",
                                         }}
                                       >
-                                        <div
-                                          style={{
-                                            fontSize: "12px",
-                                            fontWeight: 600,
-                                            color: "#1e40af",
-                                            marginBottom: "6px",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: "6px",
-                                          }}
-                                        >
-                                          <BookOpen size={14} />
-                                          Previous Feedback
-                                        </div>
-                                        <div
-                                          style={{
-                                            padding: "8px 12px",
-                                            backgroundColor: "white",
-                                            border: "1px solid #cbd5e0",
-                                            borderRadius: "4px",
-                                            fontSize: "14px",
-                                            color: "#4a5568",
-                                            lineHeight: "1.6",
-                                            whiteSpace: "pre-wrap",
-                                          }}
-                                        >
-                                          {currentStage.gate.feedback}
-                                        </div>
+                                        <BookOpen size={14} />
+                                        Previous Feedback
                                       </div>
-                                    )}
-                                  <textarea
-                                    value={
-                                      stageFeedbacks[currentStage.stage_id] ||
-                                      currentStage.gate?.feedback ||
-                                      ""
-                                    }
-                                    onChange={(e) => {
-                                      setStageFeedbacks((prev) => ({
-                                        ...prev,
-                                        [currentStage.stage_id]: e.target.value,
-                                      }));
-                                      setHasUnsavedChanges(true);
-                                      setSuccessMessage("");
-                                      setErrorMessage("");
-                                    }}
-                                    className="w-full px-4 py-3 border rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-none"
-                                    rows={2}
-                                    style={{
-                                      minHeight: "60px",
-                                      lineHeight: "1.5",
-                                    }}
-                                  />
-                                  {(stageFeedbacks[currentStage.stage_id] ||
-                                    currentStage.gate?.feedback) && (
-                                    <div
-                                      style={{
-                                        marginTop: "8px",
-                                        fontSize: "12px",
-                                        color: "#6b7280",
-                                        fontStyle: "italic",
-                                      }}
-                                    >
-                                      Feedback will be saved when you submit all
-                                      decisions
+                                      <div className="space-y-3">
+                                        {/* Show feedback from feedback array (new format) - deduplicated */}
+                                        {(() => {
+                                          // Deduplicate feedback entries by comment + created_at + created_by
+                                          const feedbackArray =
+                                            currentStage.feedback &&
+                                            Array.isArray(currentStage.feedback)
+                                              ? currentStage.feedback
+                                              : [];
+
+                                          // Filter feedback - show all valid feedback entries
+                                          // Include teacher feedback, stage feedback, or any feedback with a comment
+                                          const filteredFeedback =
+                                            feedbackArray.filter(
+                                              (fb) =>
+                                                fb &&
+                                                typeof fb === "object" &&
+                                                (fb.comment ||
+                                                  fb.feedback ||
+                                                  "") && // Must have some content
+                                                (fb.feedback_type ===
+                                                  "teacher" ||
+                                                  fb.entity_type === "stage" ||
+                                                  !fb.feedback_type ||
+                                                  !fb.entity_type) // Include all feedback types
+                                            );
+
+                                          // Deduplicate by creating a unique key for each feedback entry
+                                          const feedbackMap = new Map();
+                                          filteredFeedback.forEach((fb) => {
+                                            const uniqueKey = `${
+                                              fb.comment || ""
+                                            }-${fb.created_at || ""}-${
+                                              fb.created_by || ""
+                                            }`;
+                                            // Only keep the first occurrence
+                                            if (!feedbackMap.has(uniqueKey)) {
+                                              feedbackMap.set(uniqueKey, fb);
+                                            }
+                                          });
+
+                                          const uniqueFeedback = Array.from(
+                                            feedbackMap.values()
+                                          );
+
+                                          return uniqueFeedback.map(
+                                            (feedbackEntry, index) => (
+                                              <div
+                                                key={`feedback-${
+                                                  feedbackEntry.created_at ||
+                                                  index
+                                                }-${
+                                                  feedbackEntry.created_by ||
+                                                  "teacher"
+                                                }-${index}`}
+                                                style={{
+                                                  padding: "12px 16px",
+                                                  backgroundColor: "#f9fafb",
+                                                  border: "1px solid #e5e7eb",
+                                                  borderRadius: "6px",
+                                                }}
+                                              >
+                                                <div
+                                                  style={{
+                                                    fontSize: "12px",
+                                                    color: "#6b7280",
+                                                    marginBottom: "8px",
+                                                    display: "flex",
+                                                    justifyContent:
+                                                      "space-between",
+                                                    alignItems: "center",
+                                                  }}
+                                                >
+                                                  <span>
+                                                    {feedbackEntry.created_by ||
+                                                      "Teacher"}
+                                                  </span>
+                                                  {feedbackEntry.created_at && (
+                                                    <span>
+                                                      {new Date(
+                                                        feedbackEntry.created_at
+                                                      ).toLocaleDateString()}
+                                                    </span>
+                                                  )}
+                                                </div>
+                                                <div
+                                                  style={{
+                                                    fontSize: "14px",
+                                                    color: "#374151",
+                                                    lineHeight: "1.6",
+                                                    whiteSpace: "pre-wrap",
+                                                  }}
+                                                >
+                                                  {feedbackEntry.comment}
+                                                </div>
+                                              </div>
+                                            )
+                                          );
+                                        })()}
+
+                                        {/* Show legacy gate.feedback if it exists and not already in feedback array */}
+                                        {currentStage.gate?.feedback &&
+                                          currentStage.gate.feedback &&
+                                          typeof currentStage.gate.feedback ===
+                                            "string" &&
+                                          currentStage.gate.feedback.trim() !==
+                                            "" &&
+                                          (!currentStage.feedback ||
+                                            !Array.isArray(
+                                              currentStage.feedback
+                                            ) ||
+                                            currentStage.feedback.length ===
+                                              0 ||
+                                            !currentStage.feedback.some(
+                                              (fb) =>
+                                                fb &&
+                                                typeof fb === "object" &&
+                                                (fb.comment ===
+                                                  currentStage.gate.feedback ||
+                                                  (fb.comment &&
+                                                    fb.comment.trim() ===
+                                                      currentStage.gate.feedback.trim()))
+                                            )) && (
+                                            <div
+                                              style={{
+                                                padding: "12px 16px",
+                                                backgroundColor: "#f9fafb",
+                                                border: "1px solid #e5e7eb",
+                                                borderRadius: "6px",
+                                              }}
+                                            >
+                                              <div
+                                                style={{
+                                                  fontSize: "12px",
+                                                  color: "#6b7280",
+                                                  marginBottom: "8px",
+                                                }}
+                                              >
+                                                Teacher
+                                              </div>
+                                              <div
+                                                style={{
+                                                  fontSize: "14px",
+                                                  color: "#374151",
+                                                  lineHeight: "1.6",
+                                                  whiteSpace: "pre-wrap",
+                                                }}
+                                              >
+                                                {currentStage.gate.feedback}
+                                              </div>
+                                            </div>
+                                          )}
+                                      </div>
                                     </div>
                                   )}
                                 </div>
